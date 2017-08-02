@@ -1,0 +1,9 @@
+{
+    "baseURL": "sites.zigna.co",
+    "logLevel": "debug",
+    "timezone": "Europe/Copenhagen",
+    "fbTimezoneID": 48,
+    "version": 1,
+    "dbURL": "localhost:27017/sitebuilder",
+    "keychain": "keychain.json"
+}

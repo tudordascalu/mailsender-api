@@ -1,0 +1,7 @@
+#!/bin/bash
+
+source ${BASH_SOURCE%/*}/config/config
+
+cd $MONGOPATH
+mongo localhost:27017/sitebuilder ${BASH_SOURCE%/*}/migration/migrateMongo.js
+# mongo --quiet script.js > result.txt

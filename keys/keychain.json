@@ -1,0 +1,13 @@
+{
+    "fb":
+    {
+        "accessToken": "EAAR8jMLkDZAYBAOWFDMgerZBpPhZBDyRZAvslmHnwQOE8UphbGNvDjhii8ZCPufZAQIMhpZBWqk9UORAteA0gxDkwaEBkVDMiiKGCmGOl0thu0lpzWMqV9AAx3vmZAL0o7thRw4z0X3wXuitZCmPb7P7XlUSYlIxW6yQ69NH6fEYLCwZDZD",
+        "adsAccount": "458576697820022",
+        "adsAppSecret": "0d8a88ea341bed6649c01d05743b3fd9",
+        "businessID": "397171017293924"
+    },
+    "stripe":
+    {
+        "key": "sk_test_BQokikJOvBiI2HlWgH4olfQ2"
+    }
+}

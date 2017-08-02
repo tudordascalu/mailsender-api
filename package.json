@@ -1,0 +1,82 @@
+{
+  "name": "api-express",
+  "scripts": {
+    "start": "node bin/www",
+    "test": "ts-mocha test/**/*.ts"
+  },
+  "main": "./dist/app.js",
+  "version": "0.0.1a",
+  "description": "Zigna Website Builder API",
+  "license": "",
+  "repository": "builder-api",
+  "author": "",
+  "keywords": [
+    ""
+  ],
+  "command": "gulp",
+  "isShellCommand": true,
+  "tasks": [
+    {
+      "taskName": "tslint",
+      "args": [],
+      "problemMatcher": "$tslint4"
+    }
+  ],
+  "dependencies": {
+    "body-parser": "^1.17.2",
+    "chai-http": "^3.0.0",
+    "cookie-parser": "^1.4.3",
+    "cors": "^2.8.3",
+    "dotenv": "^4.0.0",
+    "es6-shim": "^0.35.3",
+    "express": "^4.15.3",
+    "express-winston": "^2.4.0",
+    "fbgraph": "^1.4.1",
+    "jsonwebtoken": "^7.4.1",
+    "moment": "^2.18.1",
+    "moment-timezone": "^0.5.13",
+    "mongodb": "^2.2.29",
+    "mongoose": "^4.10.8",
+    "monk": "^4.1.0",
+    "morgan": "^1.8.2",
+    "node-schedule": "^1.2.3",
+    "request": "^2.81.0",
+    "serializer.ts": "0.0.12",
+    "serve-favicon": "^2.3.2",
+    "stripe": "^4.23.0",
+    "superagent": "^1.8.5",
+    "typescript": "^2.4.0",
+    "typings": "*",
+    "underscore": "^1.8.3",
+    "uuid": "^3.1.0",
+    "winston": "^2.3.1",
+    "winston-daily-rotate-file": "^1.4.6"
+  },
+  "devDependencies": {
+    "@types/node": "^7.0.32",
+    "assert": "^1.4.1",
+    "chai": "^3.5.0",
+    "gulp": "^3.9.1",
+    "gulp-clean": "^0.3.2",
+    "gulp-develop-server": "^0.5.2",
+    "gulp-mocha": "^4.3.1",
+    "gulp-tslint": "^8.1.1",
+    "gulp-typescript": "^3.1.7",
+    "hbs": "^4.0.1",
+    "jslint": "^0.10.3",
+    "lodash": "^4.17.4",
+    "lru-cache": "^4.1.1",
+    "mocha": "^3.4.2",
+    "object-keys": "^1.0.11",
+    "pow-mongodb-fixtures": "^0.14.0",
+    "should": "^11.2.1",
+    "should-http": "^0.1.1",
+    "sigmund": "^1.0.1",
+    "supertest": "^3.0.0",
+    "ts-mocha": "^1.0.3",
+    "tslint": "^5.4.3",
+    "webpack": "^3.0.0",
+    "yarn": "^0.24.6"
+  },
+  "false": {}
+}

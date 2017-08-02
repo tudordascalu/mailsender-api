@@ -1,0 +1,6 @@
+#!/bin/bash
+
+source ${BASH_SOURCE%/*}/config/config
+
+newterm_mos "source ${BASH_SOURCE%/*}/routines/runserver $NODEPATH"
+source ${BASH_SOURCE%/*}/routines/runmongo $MONGOPATH

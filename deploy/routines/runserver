@@ -1,0 +1,12 @@
+#!/bin/bash
+
+echo -n -e "\033]0;Express\007"
+
+echo "Create directories"
+( cd $1 ; mkdir logs )
+
+echo "Build Express server"
+( cd $1 ; npm install )
+
+echo "Start Express server"
+( cd $1 ; gulp )

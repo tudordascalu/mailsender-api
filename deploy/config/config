@@ -1,0 +1,19 @@
+#!/bin/bash
+
+MONGOPATH=~/documents/projects/mongo
+NODEPATH=~/documents/projects/sitebuilder-api
+
+function newterm_mos
+{
+osascript > /dev/null <<EOF
+tell application "Terminal"
+ do script "$1"
+end tell
+EOF
+}
+
+function newterm_ubu
+{
+gnome-terminal -e "$1"
+EOF
+}
