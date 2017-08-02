@@ -10,21 +10,26 @@ let err, res, body, accessToken
 const expect = chai.expect
 chai.use(chaiHttp)
 
-const projectData = {
-  name: "some name",
-  templateID: "some template",
-  status: "inactive",
-  pages: ["page1"],
-  siteMap: ["page1"],
+const emailData = {
+  sender: "support@zigna.co",
+  recipients: ["andrei@zigna.co"],
+  message: "test mail",
+  subject: "this is a test",
 }
 
-const projectID = "2a72bfd9-b351-4b4f-bdb2-ae4c546802b7"
+const recipientData = {
+  recipients: ["andrei@zigna.co","support@zigna.co","thomas@zigna.co"]
+}
+
+const listID = "f8dfc4be-ffb2-4a5d-90f7-59e870f912f0";
 
 authenticate()
-postRequest(0, "/projects", projectData)
-// getRequest(0, `/projects/${ projectID }`, {})
-// postRequest(0, `/projects/${ projectID }/delete`, {})
-// postRequest(0, `/projects/${ projectID }`, { name: "new name", unwanted: "crap" })
+// postRequest(0, "/email", emailData)
+// postRequest(0, "/list", recipientData)
+// getRequest(0, "/list", {})
+getRequest(0, "/list/"+listID, {})
+// postRequest(0, "/list/"+listID+"/delete", {})
+// postRequest(0, "/list/"+listID+"/update", recipientData)
 
 function authenticate()
 {
