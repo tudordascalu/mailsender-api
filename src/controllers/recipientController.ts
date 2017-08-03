@@ -7,13 +7,9 @@ import { HTTPBody } from "../protocols/http"
 import { DataStore } from "./../datastore/datastore"
 import { HTTPResponse } from "./../output/response"
 
-// AWS
-var AWS = require('aws-sdk');
-AWS.config.update({region:'us-east-1'});
-var ses = new AWS.SES();
-
 export class RecipientController
 {
+  // req body: sender, recipients,message, subject
   public static createList(req: Request, res: Response, next: Function)
   {
     const data = req.body;
@@ -108,20 +104,22 @@ export class RecipientController
     )
   }
 
+  // req body: add (array of recipients to be added), delete (array of recipients to be deleted)
   public static updateList(req: Request, res: Response, next: Function)
   {
     const user = res.locals.username;
-    const newRecipients = { recipients: req.body.recipients};
+    const recipients = { addRecipients: req.body.add, deleteRecipients: req.body.delete};
 
     DataStore.local.recipients.find({ id: req.params.id, owners: user }, {},
       (err, dbData) =>
       {
-        console.log(err)
-        console.log(dbData)
         if (err || dbData.length === 0) { return HTTPResponse.error(res, "recipients lists does not exist or you cannot access it", 400) }
 
         let list = new RecipientList(dbData[0]);
-        list.update(newRecipients);
+
+        console.log(list.recipients)
+        list.updateRecipients(recipients);
+        console.log(list.recipients)
 
         DataStore.local.recipients.addOrUpdate({ id: list.id }, list, {},
           (err, dbData) =>

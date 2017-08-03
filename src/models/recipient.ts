@@ -34,4 +34,18 @@ export class RecipientList
     }
     // Object.assign(this, data)
   }
+
+  public updateRecipients(data: any)
+  {
+    for (let i = 0; i < data.deleteRecipients.length; i++)
+    {
+      const recipient = data.deleteRecipients[i];
+      const index = this.recipients.indexOf(recipient);
+      if (index != -1)
+      {
+        this.recipients.splice(index, 1);
+      }
+    }
+    this.recipients = this.recipients.concat(data.addRecipients);
+  }
 }

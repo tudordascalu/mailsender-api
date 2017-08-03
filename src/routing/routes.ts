@@ -10,6 +10,7 @@ export const routes: Route[] =
 [
   // Routes
   new Route("Send email", "/email", "POST", secureAPI, EmailController.sendEmail),
+  new Route("Send email", "/email/list", "POST", secureAPI, EmailController.sendEmailToList),
 
   new Route("Get all recipient lists", "/list", "GET", secureAPI, RecipientController.getAllLists),
   new Route("Get spicific recipient list", "/list/:id", "GET", secureAPI, RecipientController.getSpecificList),

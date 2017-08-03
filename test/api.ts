@@ -17,19 +17,32 @@ const emailData = {
   subject: "this is a test",
 }
 
+const emailData2 = {
+  sender: "support@zigna.co",
+  listID: "f8dfc4be-ffb2-4a5d-90f7-59e870f912f0",
+  message: "test mail",
+  subject: "this is a test",
+}
+
 const recipientData = {
   recipients: ["andrei@zigna.co","support@zigna.co","thomas@zigna.co"]
+}
+
+const recipientData2 = {
+  add: ["support@zigna.co"],
+  delete: ["thomas@zigna.co","test@zigna.co"]
 }
 
 const listID = "f8dfc4be-ffb2-4a5d-90f7-59e870f912f0";
 
 authenticate()
 // postRequest(0, "/email", emailData)
+// postRequest(0, "/email/list", emailData2)
 // postRequest(0, "/list", recipientData)
 // getRequest(0, "/list", {})
-getRequest(0, "/list/"+listID, {})
+// getRequest(0, "/list/"+listID, {})
 // postRequest(0, "/list/"+listID+"/delete", {})
-// postRequest(0, "/list/"+listID+"/update", recipientData)
+// postRequest(0, "/list/"+listID+"/update", recipientData2)
 
 function authenticate()
 {
