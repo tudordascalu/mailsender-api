@@ -36,20 +36,39 @@ export class EmailController
     if (data.recipients.length === 0)
     { return HTTPResponse.error(res, "recipients field must not be empty", 400) }
 
-    const email = Email.formatEmail(data);
+    let email = Email.formatEmail(data);
 
-     ses.sendEmail(email, function(err, data)
-     {
-       if (err)  // an error occurred
-       {
-         console.log(err)
-         HTTPResponse.json(res, { status: 'nope'})
-       }
-       else  // successful response
-       {
-        HTTPResponse.json(res, { status: 'ok'})
-       }
-     });
+    DataStore.local.blacklist.find({ name: 'blacklist' }, {},  // find the blacklist object inside blacklist collection
+      (err, dbData) =>
+      {
+        let blacklistedEmails = dbData[0].emails;
+
+        // remove the blacklisted destination addresses from the email that will be sent
+        for(let i=0;i<email.Destination.ToAddresses.length;i++)
+        {
+          if(blacklistedEmails.indexOf(email.Destination.ToAddresses[i]) != -1)
+          {
+            email = Email.removeToAddress(email,i)
+            i--;
+          }
+        }
+
+        if(email.Destination.ToAddresses.length == 0) return HTTPResponse.json(res, { status: 'all recipients are blacklisted'})
+
+        ses.sendEmail(email, function(err, data)
+        {
+          if (err)  // an error occurred
+          {
+           console.log(err)
+           HTTPResponse.json(res, { status: 'nope'})
+          }
+          else  // successful response
+          {
+          HTTPResponse.json(res, { status: 'ok'})
+          }
+        });
+      }
+    )
   }
 
 
@@ -176,6 +195,7 @@ export class EmailController
       }
     })
   }
+
 
   private static findBlacklist(complainedRecipients, callback){
     DataStore.local.blacklist.find({ name: 'blacklist' }, {},  // find the blacklist object inside blacklist collection

@@ -29,12 +29,19 @@ export class Email
       },
       Source: data.sender,
      };
-     
+
      for(let i=0;i<data.recipients.length;i++)
      {
        params.Destination.ToAddresses.push(data.recipients[i]);
      }
 
      return params;
+  }
+
+  public static removeToAddress(formatedEmail, index: number)
+  {
+    formatedEmail.Destination.ToAddresses.splice(index,1)
+
+    return formatedEmail
   }
 }

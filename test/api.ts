@@ -36,8 +36,8 @@ const recipientData2 = {
 const listID = "f8dfc4be-ffb2-4a5d-90f7-59e870f912f0";
 
 authenticate()
-// postRequest(0, "/email", emailData)
-// postRequest(0, "/email/list", emailData2)
+postRequest(0, "/email", emailData)
+postRequest(0, "/email/list", emailData2)
 
 // getRequest(0, "/queues/messages", {})
 // getRequest(0, "/topics", {})
