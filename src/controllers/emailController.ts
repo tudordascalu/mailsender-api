@@ -7,11 +7,14 @@ import { DataStore } from "./../datastore/datastore"
 import { HTTPResponse } from "./../output/response"
 import { RecipientController } from "./recipientController"
 import { RecipientList } from "./../models/recipient"
+import * as schedule from "node-schedule"
 
 // AWS
 var AWS = require('aws-sdk');
 AWS.config.update({region:'us-east-1'});
 var ses = new AWS.SES();
+var sns = new AWS.SNS();
+var sqs = new AWS.SQS();
 
 export class EmailController
 {
@@ -37,17 +40,18 @@ export class EmailController
 
      ses.sendEmail(email, function(err, data)
      {
-       if (err)// an error occurred
+       if (err)  // an error occurred
        {
          console.log(err)
          HTTPResponse.json(res, { status: 'nope'})
        }
-       else
-       {// successful response
+       else  // successful response
+       {
         HTTPResponse.json(res, { status: 'ok'})
        }
      });
   }
+
 
   // req body: sender,listID,message,subject
   public static sendEmailToList(req: Request, res: Response, next: Function)
@@ -74,5 +78,180 @@ export class EmailController
         EmailController.sendEmail(req,res,next);
       },
     )
+  }
+
+
+  public static listTopics(req: Request, res: Response, next: Function)
+  {
+    sns.listTopics({}, function(err, data)
+    {
+      if (err)  // an error occurred
+      {
+        console.log(err)
+        HTTPResponse.json(res, { status: 'nope'})
+      }
+      else  // successful response
+      {
+        console.log(data)
+       HTTPResponse.json(res, { status: 'ok', topics: data.Topics})
+      }
+    });
+  }
+
+
+  public static listQueues(req: Request, res: Response, next: Function)
+  {
+    sqs.listQueues({}, function(err, data)
+    {
+      if (err)  // an error occurred
+      {
+        console.log(err)
+        HTTPResponse.json(res, { status: 'nope'})
+      }
+      else  // successful response
+      {
+        console.log(data)
+       HTTPResponse.json(res, { status: 'ok', queues: data.QueueUrls})
+      }
+    });
+  }
+
+
+  public static handleComplaintsQueue()
+  {
+    const queueName = 'ses_complaints_queue';
+    let QueueUrl = ''
+
+    sqs.getQueueUrl({QueueName: queueName}, function(err, data)
+    {
+      if (err)  // an error occurred
+      {
+        console.log(err)
+        console.log('failed to find the complaints queue')
+      }
+      else
+      {
+        QueueUrl = data.QueueUrl
+        let params = {
+          QueueUrl: QueueUrl,
+          // MaxNumberOfMessages: 10,
+        };
+        sqs.receiveMessage(params, function(err, data)
+        {
+          if (err)  // an error occurred
+          {
+            console.log(err)
+            console.log('failed to receive message from complaints queue')
+          }
+          else  // successful response
+          {
+            if(!data.Messages)  // no message in the queue
+            {
+              console.log('no messages in the queue')
+              return EmailController.scheduleTask()
+            }
+            else
+            {
+              let complainedRecipients = []
+              const body = JSON.parse(data.Messages[0].Body)
+              const jsonData = JSON.parse(body.Message).complaint.complainedRecipients
+              const ReceiptHandle = data.Messages[0].ReceiptHandle;
+
+              for(let j=0;j<jsonData.length;j++) // go through each email address from complainedRecipients
+              {
+                if(complainedRecipients.indexOf(jsonData[j].emailAddress) == -1)
+                {
+                  complainedRecipients.push(jsonData[j].emailAddress)
+                }
+              }
+
+              EmailController.findBlacklist(complainedRecipients, () => {
+                EmailController.deleteMessageFromQueue(QueueUrl,ReceiptHandle,() => {
+                  return EmailController.scheduleTask()
+                })
+              })
+            }
+          }
+        })
+      }
+    })
+  }
+
+  private static findBlacklist(complainedRecipients, callback){
+    DataStore.local.blacklist.find({ name: 'blacklist' }, {},  // find the blacklist object inside blacklist collection
+      (err, dbData) =>
+      {
+        if(err) console.log("error finding the blacklist in db")
+
+        if (dbData.length === 0) // no blacklist object found => create one from scratch
+        {
+          EmailController.addOrUpdateBlacklist(complainedRecipients)
+        }
+        else
+        {
+          let emails = dbData[0].emails
+          let changed = false
+
+          for(let i=0;i<complainedRecipients.length;i++)
+          {
+            if(emails.indexOf(complainedRecipients[i]) == -1)
+            {
+              emails.push(complainedRecipients[i])
+              changed = true
+            }
+          }
+
+          if(changed)
+          {
+            EmailController.addOrUpdateBlacklist(emails)
+          }
+
+          else console.log('blacklist found, but nothing changed')
+        }
+        callback()
+      }
+    )
+  }
+
+
+  private static addOrUpdateBlacklist(emails){
+    DataStore.local.blacklist.addOrUpdate({ name: 'blacklist' }, { name: 'blacklist', emails : emails }, {},
+      (err, dbData) =>
+      {
+        if(err) console.log("error updating the blacklist in db")
+
+        else console.log("success updating the emails from blacklist")
+      },
+    )
+  }
+
+
+  private static deleteMessageFromQueue(QueueUrl,ReceiptHandle, callback){
+    let params2 = {
+      QueueUrl: QueueUrl,
+      ReceiptHandle: ReceiptHandle /* required */
+    };
+    sqs.deleteMessage(params2, function(err, data) {
+      if (err)  // an error occurred
+      {
+        console.log(err)
+        console.log('failed to delete message from complaints queue')
+      }
+      else  // successful response
+      {
+        console.log('message deleted from complaints queue')
+      }
+      callback()
+    });
+  }
+
+
+  private static scheduleTask()
+  {
+    const delay = 5
+    const scheduledTime = new Date((new Date()).getTime() + delay * 1000)
+
+    schedule.scheduleJob(scheduledTime, () =>
+    { EmailController.handleComplaintsQueue() })
   }
 }

@@ -6,20 +6,18 @@ import { config } from "./config/config"
 import { DataStore } from "./datastore/datastore"
 import { Logger } from "./output/logger"
 import { Router } from "./routing/router"
+import { EmailController } from "./controllers/emailController"
 
 /*****************
  * Configuration *
  *****************/
-
-const insightsDates = [{ hour: 4, minute: 0 }, { hour: 20, minute: 0 }]
-const performanceDates = [{ hour: 7, minute: 0 }, { hour: 23, minute: 0 }]
 
 /***********
  * Startup *
  ***********/
 
 initializeApp()
-scheduleTasks()
+// scheduleTasks()
 
 /************
  * Routines *
@@ -44,22 +42,11 @@ function initializeApp()
 /* Schedule tasks */
 function scheduleTasks()
 {
-  // const delay = 5
-  // const scheduledTime = new Date((new Date()).getTime() + delay * 1000)
-  // insightsDates.forEach((scheduled) =>
-  // { schedule.scheduleJob(scheduled, () => { InsightsHandler.createRequests() }) })
+  const delay = 5
+  const scheduledTime = new Date((new Date()).getTime() + delay * 1000)
 
-  // performanceDates.forEach((scheduled) =>
-  // { schedule.scheduleJob(scheduled, () => { PerformanceHandler.createAdRequests() }) })
-
-  // schedule.scheduleJob(scheduledTime, () => { InsightsHandler.createRequests() })
-
-  // const scheduledTime = new Date((new Date()).getTime() + delay * 1000)
-  // schedule.scheduleJob(scheduledTime, () =>
-  // { CampaignHandler.createRequests() })
-
-  // schedule.scheduleJob(scheduledTime, () =>
-  // { CampaignHandler.performRequests(false) })
+  schedule.scheduleJob(scheduledTime, () =>
+    { EmailController.handleComplaintsQueue() })
 }
 
 /* Configure parsers */
@@ -70,6 +57,7 @@ function configureParsers(app: any)
 
   app.use(bodyParser.json())
   app.use(bodyParser.urlencoded({ extended: false }))
+  app.use(bodyParser.text())
   app.use(cookieParser())
 }
 

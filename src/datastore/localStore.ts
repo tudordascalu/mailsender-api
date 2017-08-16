@@ -27,18 +27,19 @@ export class Collection
 }
 
 export const collections =
-{ users: "users", projects: "projects", recipients: "recipients" }
+{ users: "users", projects: "projects", recipients: "recipients", blacklist: "blacklist" }
 
 export class LocalStore
 {
   private _connection: any
-  users: Collection; projects: Collection; recipients: Collection;
+  users: Collection; projects: Collection; recipients: Collection; blacklist: Collection;
 
   constructor()
   {
     this.users = new Collection(this.connection, collections.users)
     this.projects = new Collection(this.connection, collections.projects)
     this.recipients = new Collection(this.connection, collections.recipients)
+    this.blacklist = new Collection(this.connection, collections.blacklist)
   }
 
   public get connection()

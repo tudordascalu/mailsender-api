@@ -12,9 +12,9 @@ chai.use(chaiHttp)
 
 const emailData = {
   sender: "support@zigna.co",
-  recipients: ["andrei@zigna.co"],
-  message: "test mail",
-  subject: "this is a test",
+  recipients: ["andrei@zigna.co","thomas@zigna.co"],
+  message: "bla bsadjhjasdhdkjas jsdahjashdjlas",
+  subject: "TEST",
 }
 
 const emailData2 = {
@@ -38,6 +38,11 @@ const listID = "f8dfc4be-ffb2-4a5d-90f7-59e870f912f0";
 authenticate()
 // postRequest(0, "/email", emailData)
 // postRequest(0, "/email/list", emailData2)
+
+// getRequest(0, "/queues/messages", {})
+// getRequest(0, "/topics", {})
+// getRequest(0, "/queues", {})
+
 // postRequest(0, "/list", recipientData)
 // getRequest(0, "/list", {})
 // getRequest(0, "/list/"+listID, {})
