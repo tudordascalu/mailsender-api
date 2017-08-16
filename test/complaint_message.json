@@ -1,0 +1,11 @@
+{
+  "Type" : "Notification",
+  "MessageId" : "533424b2-ae3f-5b59-b5b4-76bca1a04383",
+  "TopicArn" : "arn:aws:sns:us-east-1:027912253853:ses_deliveries_topic",
+  "Message" : "{\"notificationType\":\"Complaint\",\"mail\":{\"timestamp\":\"2017-08-16T09:16:14.454Z\",\"source\":\"support@zigna.co\",\"sourceArn\":\"arn:aws:ses:us-east-1:027912253853:identity/support@zigna.co\",\"sourceIp\":\"212.98.117.226\",\"sendingAccountId\":\"027912253853\",\"messageId\":\"0100015dea5438f6-34184bd8-519e-4dc3-b654-50e4fb465ab0-000000\",\"destination\":[\"andrei@zigna.co\"]},\"complaint\":{\"timestamp\":\"2017-08-16T09:16:14.454Z\",\"complainedRecipients\":[{\"emailAddress\":\"thomas@zigna.co\"}],\"feedbackId\":\"000001378603177f-18c07c78-fa81-4a58-9dd1-fedc3cb8f49a-000000\"}}",
+  "Timestamp" : "2017-08-16T09:16:15.300Z",
+  "SignatureVersion" : "1",
+  "Signature" : "Rmvt4zfsVgmbk/FEXGfG2j3Svx5fJY0jHGiuHob9WNWiyPmhv19hGppZXxl/PRH/f+xOZjAjU8jDNM/B7CqhZb2gADGdLJPMBWDc3FBiGFfxGk/CmBL/aGIoSyBjxu764dOsrl2k5Vewna9S0qZd7J0Nlhu2JjugpHqvJyk+Et5QTzbz1KKfO7q69sT2+mAOgEcGpbGMm/Y3F3+Zq412I5efFRIqWOqnqlC5jaZFt9QcSrsONmp0NuiW2KGv/Bej5wpcCFNyXJS8SzFoMqhxdfAn9Kcv7GrSvCCCH5bTo6ZdFjM8gu7EIbBDXKORWb4Vr0T5S2y7QT5bo4s2Fjzenw==",
+  "SigningCertURL" : "https://sns.us-east-1.amazonaws.com/SimpleNotificationService-433026a4050d206028891664da859041.pem",
+  "UnsubscribeURL" : "https://sns.us-east-1.amazonaws.com/?Action=Unsubscribe&SubscriptionArn=arn:aws:sns:us-east-1:027912253853:ses_deliveries_topic:103f389b-e811-47eb-9389-ef1891789801"
+}
