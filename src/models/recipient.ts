@@ -1,7 +1,7 @@
 
 export class RecipientList
 {
-  static keys = ["id", "recipients", "owners"];
+  static keys = ['id', 'recipients', 'owners'];
 
   id: string;
   recipients: string[];
@@ -41,7 +41,7 @@ export class RecipientList
     {
       const recipient = data.deleteRecipients[i];
       const index = this.recipients.indexOf(recipient);
-      if (index != -1)
+      if (index !== -1)
       {
         this.recipients.splice(index, 1);
       }

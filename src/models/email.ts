@@ -1,4 +1,3 @@
-
 // Define the parameters required for an email here for both request and database.
 
 export class Email
@@ -9,28 +8,28 @@ export class Email
   message: string;
   subject: string;
 
-  public static formatEmail(data: any) : any
+  public static formatEmail(data: any): any
   {
-    var params = {
+    let params = {
       Destination: {
-       ToAddresses: []
+       ToAddresses: [],
       },
       Message: {
        Body: {
         Text: {
-         Charset: "UTF-8",
-         Data: data.message
-        }
+         Charset: 'UTF-8',
+         Data: data.message,
+        },
        },
        Subject: {
-        Charset: "UTF-8",
-        Data: data.subject
-       }
+        Charset: 'UTF-8',
+        Data: data.subject,
+       },
       },
       Source: data.sender,
      };
 
-     for(let i=0;i<data.recipients.length;i++)
+     for (let i = 0; i < data.recipients.length; i++)
      {
        params.Destination.ToAddresses.push(data.recipients[i]);
      }
@@ -40,8 +39,8 @@ export class Email
 
   public static removeToAddress(formatedEmail, index: number)
   {
-    formatedEmail.Destination.ToAddresses.splice(index,1)
+    formatedEmail.Destination.ToAddresses.splice(index, 1);
 
-    return formatedEmail
+    return formatedEmail;
   }
 }

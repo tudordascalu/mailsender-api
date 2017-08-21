@@ -46,11 +46,11 @@
         ],
         "quotemark": [
             true,
-            "double"
+            "single"
         ],
         "semicolon": [
             true,
-            "never"
+            "always"
         ],
         "triple-equals": [
             true,
