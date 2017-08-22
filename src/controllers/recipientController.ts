@@ -22,7 +22,7 @@ export class RecipientController
     data.owners = [user];
     const list = RecipientList.fromRequest(data);
 
-    DataStore.local.recipients.addOrUpdate({ id: list.id }, list, {},
+    DataStore.local.recipients.addOrUpdate({ id: list.id }, list.dbData, {},
       (err, dbData) =>
       {
         if (err) return HTTPResponse.error(res, 'error creating the list in db', 400);
@@ -34,19 +34,18 @@ export class RecipientController
   public static getAllLists(req: Request, res: Response, next: Function)
   {
     const user = res.locals.username;
-    console.log(user);
 
     DataStore.local.recipients.find({ owners: user }, {},
       (err, dbData) =>
       {
-        if (err || dbData.length === 0) { return HTTPResponse.error(res, 'recipients lists does not exist or you cannot access it', 400); }
-        let listArray = [];
+        if (err || dbData.length === 0) { return HTTPResponse.json(res, []); }
+        let userLists = [];
         for (let i = 0; i < dbData.length; i++)
         {
           const list = RecipientList.fromDatastore(dbData[0]);
-          listArray.push(list);
+          userLists.push(list);
         }
-        HTTPResponse.json(res, listArray);
+        HTTPResponse.json(res, userLists);
       },
     );
   }
@@ -75,7 +74,7 @@ export class RecipientController
         if (err || dbData.length === 0) { return HTTPResponse.error(res, 'recipients lists does not exist or you cannot access it', 400); }
         const list = dbData[0];
 
-        if (list.owners.length === 1)// if the list has only one owner, delete it
+        if (list.owners.length === 1)
         {
           DataStore.local.recipients.remove({ id: list.id }, {},
             (err, dbData) =>
@@ -85,7 +84,7 @@ export class RecipientController
             },
           );
         }
-        else// otherwise remove this owner from it
+        else
         {
           for (let i = 0; i < list.owners.length; i++)
           {
@@ -104,7 +103,6 @@ export class RecipientController
     );
   }
 
-  // req body: add (array of recipients to be added), delete (array of recipients to be deleted)
   public static updateList(req: Request, res: Response, next: Function)
   {
     const user = res.locals.username;
@@ -117,10 +115,7 @@ export class RecipientController
 
         let list = new RecipientList(dbData[0]);
 
-        console.log(list.recipients);
         list.updateRecipients(recipients);
-        console.log(list.recipients);
-
         DataStore.local.recipients.addOrUpdate({ id: list.id }, list, {},
           (err, dbData) =>
           {

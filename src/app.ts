@@ -3,8 +3,8 @@ import * as fs from 'fs';
 import * as schedule from 'node-schedule';
 import * as path from 'path';
 import { config } from './config/config';
-import { EmailController } from './controllers/emailController';
 import { DataStore } from './datastore/datastore';
+import { ComplaintHandler } from './handlers/complaintHandler';
 import { Logger } from './output/logger';
 import { Router } from './routing/router';
 
@@ -46,7 +46,7 @@ function scheduleTasks()
   const scheduledTime = new Date((new Date()).getTime() + delay * 1000);
 
   schedule.scheduleJob(scheduledTime, () =>
-    { EmailController.handleComplaintsQueue(); });
+    { ComplaintHandler.handleComplaints(); });
 }
 
 /* Configure parsers */

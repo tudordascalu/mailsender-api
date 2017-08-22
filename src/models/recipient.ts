@@ -7,9 +7,14 @@ export class RecipientList
   recipients: string[];
   owners: string[];
 
-  constructor(data: any) {
-    this.update(data);
+  get dbData()
+  {
+    const parameters: any = {};
+    Object.assign(parameters, this);
+    return parameters;
   }
+
+  constructor(data: any) { Object.assign(this, data); }
 
   public static fromRequest(data: any): RecipientList
   {
@@ -25,27 +30,15 @@ export class RecipientList
     return site;
   }
 
-  public update(data: any)
+  public updateRecipients(data: { deleteRecipients: string[], addRecipients: string[] })
   {
-    for (let i = 0; i < RecipientList.keys.length; i++)
-    {
-      const key = RecipientList.keys[i];
-      if (data[key]) { this[key] = data[key]; }
-    }
-    // Object.assign(this, data)
-  }
-
-  public updateRecipients(data: any)
-  {
+    this.recipients = this.recipients.concat(data.addRecipients);
     for (let i = 0; i < data.deleteRecipients.length; i++)
     {
       const recipient = data.deleteRecipients[i];
       const index = this.recipients.indexOf(recipient);
       if (index !== -1)
-      {
-        this.recipients.splice(index, 1);
-      }
+      { this.recipients.splice(index, 1); }
     }
-    this.recipients = this.recipients.concat(data.addRecipients);
   }
 }
