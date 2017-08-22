@@ -59,7 +59,7 @@ export class ComplaintHandler
 
       let blacklist = emails;
       if (dbData.length === 1)
-      {  blacklist.push(dbData[0].emails); }
+      { blacklist = blacklist.concat(dbData[0].emails); }
 
       blacklist = blacklist.filter((elem, index, self) =>
       { return index === self.indexOf(elem); });
