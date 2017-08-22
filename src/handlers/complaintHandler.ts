@@ -50,8 +50,8 @@ export class ComplaintHandler
     });
   }
 
-  private static updateBlacklist(emails: string[], callback: () => (void)) {
-
+  private static updateBlacklist(emails: string[], callback: () => (void))
+  {
     DataStore.local.blacklist.find({ name: 'blacklist' }, {},
     (err, dbData) =>
     {
@@ -70,7 +70,8 @@ export class ComplaintHandler
   }
 
 
-  private static deleteMessageFromQueue(queueUrl: string, receiptHandle: string, callback?: (err, data) => (void)) {
+  private static deleteMessageFromQueue(queueUrl: string, receiptHandle: string, callback?: (err, data) => (void))
+  {
     let params = { QueueUrl: queueUrl, ReceiptHandle: receiptHandle };
     sqs.deleteMessage(params, (err, data) =>
     {
