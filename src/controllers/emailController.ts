@@ -16,54 +16,63 @@ const ses = new aws.SES();
 
 export class EmailController
 {
-  // req body: sender,recipients,message,subject
   public static sendEmail(req: Request, res: Response, next: Function)
   {
-    const data = req.body;
+    const body = req.body;
     const user = res.locals.username;
-    const requiredFields = [ 'sender', 'recipients', 'body', 'subject' ];
+    const requiredFields = [ 'sender', 'body', 'subject' ];
 
     let missing;
-    if (missing = HTTPBody.missingFields(data, requiredFields))
+    if (missing = HTTPBody.missingFields(body, requiredFields))
     { return HTTPResponse.missing(res, missing, 'body'); }
 
-    if (data.recipients.length === 0)
-    { return HTTPResponse.error(res, 'recipients field must not be empty', 400); }
-
-    const email = new Email(data);
-    sendEmail(email, (err, mailData) =>
+    const sendEmailBlock = (email) =>
     {
-      if (err) { HTTPResponse.error(res, 'could not send emails', 500); }
-      else { HTTPResponse.success(res); }
-    });
-  }
-
-  public static sendEmailToList(req: Request, res: Response, next: Function)
-  {
-    const data = req.body;
-    const user = res.locals.username;
-    const requiredFields = [ 'sender', 'listID', 'body', 'subject' ];
-
-    let missing;
-    if (missing = HTTPBody.missingFields(data, requiredFields))
-    { return HTTPResponse.missing(res, missing, 'body'); }
-
-    DataStore.local.recipients.find({ id: req.body.listID, owners: user }, {},
-      (err, dbData) =>
+      sendEmail(email, (err, mailData) =>
       {
-        if (err || dbData.length === 0) { return HTTPResponse.error(res, 'recipients lists does not exist or you cannot access it', 400); }
-        const list = dbData[0].recipients;
-        data.recipients = list;
+        if (err) { HTTPResponse.error(res, 'could not send emails', 500); }
+        else { HTTPResponse.success(res); }
+      });
+    };
 
-        const email = new Email(data);
-        sendEmail(email, (err, mailData) =>
+    if (body['recipients'])
+    {
+      if (body.recipients.length === 0)
+      { return HTTPResponse.error(res, 'recipients field must not be empty', 400); }
+
+      const email = new Email(body);
+      return sendEmailBlock(email);
+    }
+    else if (body['listID'])
+    {
+      DataStore.local.recipients.find({ id: req.body.listID, owners: user }, {},
+        (err, dbData) =>
         {
-          if (err) { HTTPResponse.error(res, err, 500); }
-          else { HTTPResponse.success(res); }
-        });
-      },
-    );
+          if (err || dbData.length === 0) { return HTTPResponse.error(res, 'recipients lists does not exist or you cannot access it', 400); }
+          const list = dbData[0].recipients;
+          body.recipients = list;
+
+          const email = new Email(body);
+          return sendEmailBlock(email);
+        },
+      );
+    }
+    else
+    { return HTTPResponse.error(res, 'either recipients or listID field is required', 400); }
   }
+
+  // public static sendEmailToList(req: Request, res: Response, next: Function)
+  // {
+  //   const data = req.body;
+  //   const user = res.locals.username;
+  //   const requiredFields = [ 'sender', 'listID', 'body', 'subject' ];
+
+  //   let missing;
+  //   if (missing = HTTPBody.missingFields(data, requiredFields))
+  //   { return HTTPResponse.missing(res, missing, 'body'); }
+
+
+  // }
 
   // public static listTopics(req: Request, res: Response, next: Function)
   // {
@@ -106,9 +115,12 @@ function sendEmail(email: Email, completion: (err, data) => (void))
   DataStore.local.blacklist.find({ name: 'blacklist' }, {},
     (err, dbData) =>
     {
-      const blacklist = dbData[0].emails;
-      for (let i = 0; i < blacklist.length; i++)
-      { email.removeRecipient(blacklist[i]); }
+      if (dbData.length > 0)
+      {
+        const blacklist = dbData[0].emails;
+        for (let i = 0; i < blacklist.length; i++)
+        { email.removeRecipient(blacklist[i]); }
+      }
 
       if (email.recipients.length === 0)
       { return completion('all recipients are blacklisted', null); }

@@ -12,21 +12,25 @@ export class RecipientController
   // req body: sender, recipients,message, subject
   public static createList(req: Request, res: Response, next: Function)
   {
-    const data = req.body;
+    const body = req.body;
     const user = res.locals.username;
 
-    if (data.recipients.length === 0)
+    let missing;
+    if (missing = HTTPBody.missingFields(body, ['recipients']))
+    { return HTTPResponse.missing(res, missing, 'body'); }
+
+    if (body.recipients.length === 0)
     { return HTTPResponse.error(res, 'recipients must not be empty', 400); }
 
-    data.id = uuid();
-    data.owners = [user];
-    const list = RecipientList.fromRequest(data);
+    body.id = uuid();
+    body.owners = [user];
+    const list = RecipientList.fromRequest(body);
 
     DataStore.local.recipients.addOrUpdate({ id: list.id }, list.dbData, {},
       (err, dbData) =>
       {
         if (err) return HTTPResponse.error(res, 'error creating the list in db', 400);
-        else HTTPResponse.json(res, dbData);
+        else HTTPResponse.json(res, dbData.id);
       },
     );
   }
@@ -43,7 +47,7 @@ export class RecipientController
         for (let i = 0; i < dbData.length; i++)
         {
           const list = RecipientList.fromDatastore(dbData[0]);
-          userLists.push(list);
+          userLists.push(list.responseData);
         }
         HTTPResponse.json(res, userLists);
       },
@@ -59,7 +63,7 @@ export class RecipientController
       {
         if (err || dbData.length === 0) { return HTTPResponse.error(res, 'recipients lists does not exist or you cannot access it', 400); }
         const list = RecipientList.fromDatastore(dbData[0]);
-        HTTPResponse.json(res, list);
+        HTTPResponse.json(res, list.responseData);
       },
     );
   }
@@ -94,8 +98,8 @@ export class RecipientController
           DataStore.local.recipients.addOrUpdate({ id: list.id }, list, {},
             (err, dbData) =>
             {
-              if (err) return HTTPResponse.error(res, 'error updating the list in db', 400);
-              else HTTPResponse.json(res, dbData);
+              if (err || dbData.length === 0) { return HTTPResponse.error(res, 'error updating the list in db', 400); }
+              HTTPResponse.success(res);
             },
           );
         }
@@ -119,8 +123,10 @@ export class RecipientController
         DataStore.local.recipients.addOrUpdate({ id: list.id }, list, {},
           (err, dbData) =>
           {
-            if (err) return HTTPResponse.error(res, 'error updating the list in db', 400);
-            else HTTPResponse.json(res, dbData);
+            if (err) { return HTTPResponse.error(res, 'error updating the list in db', 400); }
+
+            const list = RecipientList.fromDatastore(dbData[0]);
+            HTTPResponse.json(res, list.responseData);
           },
         );
       },

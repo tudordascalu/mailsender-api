@@ -41,4 +41,14 @@ export class RecipientList
       { this.recipients.splice(index, 1); }
     }
   }
+
+  public get responseData()
+  {
+    const parameters =
+    {
+      id: this.id,
+      recipients: this.recipients,
+    };
+    return parameters;
+  }
 }

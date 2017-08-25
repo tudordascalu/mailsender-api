@@ -1,7 +1,7 @@
 #!/bin/bash
 
-MONGOPATH=~/documents/projects/mongo
-NODEPATH=~/documents/projects/sitebuilder-api
+MONGOPATH=~/projects/mongo
+NODEPATH=~/projects/mailsender-api
 
 function newterm_mos
 {
