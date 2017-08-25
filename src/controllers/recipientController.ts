@@ -1,54 +1,57 @@
-import { Request, Response } from "express"
-import * as uuid from "uuid/v4"
-import { config } from "../config/config"
-import { Email } from "./../models/email"
-import { RecipientList } from "./../models/recipient"
-import { HTTPBody } from "../protocols/http"
-import { DataStore } from "./../datastore/datastore"
-import { HTTPResponse } from "./../output/response"
+import { Request, Response } from 'express';
+import * as uuid from 'uuid/v4';
+import { config } from '../config/config';
+import { HTTPBody } from '../protocols/http';
+import { DataStore } from './../datastore/datastore';
+import { Email } from './../models/email';
+import { RecipientList } from './../models/recipient';
+import { HTTPResponse } from './../output/response';
 
 export class RecipientController
 {
   // req body: sender, recipients,message, subject
   public static createList(req: Request, res: Response, next: Function)
   {
-    const data = req.body;
+    const body = req.body;
     const user = res.locals.username;
 
-    if (data.recipients.length === 0)
-    { return HTTPResponse.error(res, "recipients must not be empty", 400) }
+    let missing;
+    if (missing = HTTPBody.missingFields(body, ['recipients']))
+    { return HTTPResponse.missing(res, missing, 'body'); }
 
-    data.id = uuid();
-    data.owners = [user];
-    const list = RecipientList.fromRequest(data);
+    if (body.recipients.length === 0)
+    { return HTTPResponse.error(res, 'recipients must not be empty', 400); }
 
-    DataStore.local.recipients.addOrUpdate({ id: list.id }, list, {},
+    body.id = uuid();
+    body.owners = [user];
+    const list = RecipientList.fromRequest(body);
+
+    DataStore.local.recipients.addOrUpdate({ id: list.id }, list.dbData, {},
       (err, dbData) =>
       {
-        if(err) return HTTPResponse.error(res, "error creating the list in db", 400)
-        else HTTPResponse.json(res, dbData)
+        if (err) return HTTPResponse.error(res, 'error creating the list in db', 400);
+        else HTTPResponse.json(res, dbData.id);
       },
-    )
+    );
   }
 
   public static getAllLists(req: Request, res: Response, next: Function)
   {
     const user = res.locals.username;
-    console.log(user);
 
     DataStore.local.recipients.find({ owners: user }, {},
       (err, dbData) =>
       {
-        if (err || dbData.length === 0) { return HTTPResponse.error(res, "recipients lists does not exist or you cannot access it", 400) }
-        let listArray = [];
-        for(let i=0;i<dbData.length;i++)
+        if (err || dbData.length === 0) { return HTTPResponse.json(res, []); }
+        let userLists = [];
+        for (let i = 0; i < dbData.length; i++)
         {
-          const list = RecipientList.fromDatastore(dbData[0])
-          listArray.push(list);
+          const list = RecipientList.fromDatastore(dbData[0]);
+          userLists.push(list.responseData);
         }
-        HTTPResponse.json(res, listArray)
+        HTTPResponse.json(res, userLists);
       },
-    )
+    );
   }
 
   public static getSpecificList(req: Request, res: Response, next: Function)
@@ -58,11 +61,11 @@ export class RecipientController
     DataStore.local.recipients.find({ id: req.params.id, owners: user }, {},
       (err, dbData) =>
       {
-        if (err || dbData.length === 0) { return HTTPResponse.error(res, "recipients lists does not exist or you cannot access it", 400) }
-        const list = RecipientList.fromDatastore(dbData[0])
-        HTTPResponse.json(res, list)
+        if (err || dbData.length === 0) { return HTTPResponse.error(res, 'recipients lists does not exist or you cannot access it', 400); }
+        const list = RecipientList.fromDatastore(dbData[0]);
+        HTTPResponse.json(res, list.responseData);
       },
-    )
+    );
   }
 
   public static deleteList(req: Request, res: Response, next: Function)
@@ -72,39 +75,38 @@ export class RecipientController
     DataStore.local.recipients.find({ id: req.params.id, owners: user }, {},
       (err, dbData) =>
       {
-        if (err || dbData.length === 0) { return HTTPResponse.error(res, "recipients lists does not exist or you cannot access it", 400) }
+        if (err || dbData.length === 0) { return HTTPResponse.error(res, 'recipients lists does not exist or you cannot access it', 400); }
         const list = dbData[0];
 
-        if(list.owners.length == 1)//if the list has only one owner, delete it
+        if (list.owners.length === 1)
         {
           DataStore.local.recipients.remove({ id: list.id }, {},
             (err, dbData) =>
             {
-              if (err) { return HTTPResponse.error(res, "recipients lists does not exist or you cannot access it", 400) }
+              if (err) { return HTTPResponse.error(res, 'recipients lists does not exist or you cannot access it', 400); }
               HTTPResponse.success(res);
             },
-          )
+          );
         }
-        else// otherwise remove this owner from it
+        else
         {
-          for(let i=0;i<list.owners.length;i++)
+          for (let i = 0; i < list.owners.length; i++)
           {
-            if(list.owners[i] == user) { list.owners.splice(i, 1); }
+            if (list.owners[i] === user) { list.owners.splice(i, 1); }
             break;
           }
           DataStore.local.recipients.addOrUpdate({ id: list.id }, list, {},
             (err, dbData) =>
             {
-              if(err) return HTTPResponse.error(res, "error updating the list in db", 400);
-              else HTTPResponse.json(res, dbData);
+              if (err || dbData.length === 0) { return HTTPResponse.error(res, 'error updating the list in db', 400); }
+              HTTPResponse.success(res);
             },
-          )
+          );
         }
       },
-    )
+    );
   }
 
-  // req body: add (array of recipients to be added), delete (array of recipients to be deleted)
   public static updateList(req: Request, res: Response, next: Function)
   {
     const user = res.locals.username;
@@ -113,22 +115,21 @@ export class RecipientController
     DataStore.local.recipients.find({ id: req.params.id, owners: user }, {},
       (err, dbData) =>
       {
-        if (err || dbData.length === 0) { return HTTPResponse.error(res, "recipients lists does not exist or you cannot access it", 400) }
+        if (err || dbData.length === 0) { return HTTPResponse.error(res, 'recipients lists does not exist or you cannot access it', 400); }
 
         let list = new RecipientList(dbData[0]);
 
-        console.log(list.recipients)
         list.updateRecipients(recipients);
-        console.log(list.recipients)
-
         DataStore.local.recipients.addOrUpdate({ id: list.id }, list, {},
           (err, dbData) =>
           {
-            if(err) return HTTPResponse.error(res, "error updating the list in db", 400);
-            else HTTPResponse.json(res, dbData);
-          }
-        )
-      }
-    )
+            if (err) { return HTTPResponse.error(res, 'error updating the list in db', 400); }
+
+            const list = RecipientList.fromDatastore(dbData[0]);
+            HTTPResponse.json(res, list.responseData);
+          },
+        );
+      },
+    );
   }
 }

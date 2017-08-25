@@ -1,47 +1,43 @@
-
 // Define the parameters required for an email here for both request and database.
 
 export class Email
 {
-  id: string;
+id: string;
+  body: string;
+  subject: string;
   sender: string;
   recipients: string[];
-  message: string;
-  subject: string;
 
-  public static formatEmail(data: any) : any
+  public get request()
   {
-    var params = {
-      Destination: {
-       ToAddresses: []
-      },
+    const params = {
+      Destination: { ToAddresses: this.recipients },
       Message: {
        Body: {
-        Text: {
-         Charset: "UTF-8",
-         Data: data.message
-        }
+        Text: { Charset: 'UTF-8', Data: this.body },
        },
-       Subject: {
-        Charset: "UTF-8",
-        Data: data.subject
-       }
+       Subject: { Charset: 'UTF-8', Data: this.subject },
       },
-      Source: data.sender,
+      Source: this.sender,
      };
-
-     for(let i=0;i<data.recipients.length;i++)
-     {
-       params.Destination.ToAddresses.push(data.recipients[i]);
-     }
 
      return params;
   }
 
-  public static removeToAddress(formatedEmail, index: number)
+  constructor(data: any)
   {
-    formatedEmail.Destination.ToAddresses.splice(index,1)
+    if (data) { Object.assign(this, data); }
+  }
 
-    return formatedEmail
+  public removeRecipient(email: string)
+  {
+    const index = this.recipients.indexOf(email);
+    if (index >= 0) { this.recipients.splice(index, 1); }
+    // for (let i = 0; i < this.recipients.length; i++) {
+    //   const element = this.recipients[i];
+    //   if (element === email) { this.recipients.splice(i, 1); }
+    // }
+    // const recipients = this.recipients;
+    // recipients.splice(index, 1);
   }
 }
