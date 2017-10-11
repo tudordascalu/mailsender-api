@@ -2,8 +2,9 @@ import { EmailController } from '../controllers/emailController';
 import { RecipientController } from '../controllers/recipientController';
 import { Route } from '../protocols/http';
 import { DevController } from './../controllers/devController';
+import { CampaignController } from './../controllers/campaignController';
 
-const secureAPI = true;
+const secureAPI = false;
 
 // Production routes for development purposes only
 export const routes: Route[] =
@@ -19,6 +20,12 @@ export const routes: Route[] =
   new Route('Create recipient list', '/lists', 'POST', secureAPI, RecipientController.createList),
   new Route('Delete recipient list', '/lists/:id/delete', 'POST', secureAPI, RecipientController.deleteList),
   new Route('Update recipient list', '/lists/:id/update', 'POST', secureAPI, RecipientController.updateList),
+
+
+  new Route('Create campaign', '/campaigns', 'POST', secureAPI, CampaignController.createCampaign),  
+  new Route('Get all campaigns', '/campaigns', 'GET', secureAPI, CampaignController.getAllCampaigns),
+  new Route('Get spicific campaign', '/campaigns/:id', 'GET', secureAPI, CampaignController.getSpecificCampaign),
+
 ];
 
 // Routes for development purposes only
