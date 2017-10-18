@@ -25,6 +25,7 @@ export const routes: Route[] =
   new Route('Create campaign', '/campaigns', 'POST', secureAPI, CampaignController.createCampaign),  
   new Route('Get all campaigns', '/campaigns', 'GET', secureAPI, CampaignController.getAllCampaigns),
   new Route('Get spicific campaign', '/campaigns/:id', 'GET', secureAPI, CampaignController.getSpecificCampaign),
+  new Route('Send campaign', '/send/:id', 'GET', secureAPI, CampaignController.sendCampaign)
 
 ];
 

@@ -4,8 +4,8 @@ export class Email
 {
 id: string;
   body: string;
-  subject: string;
-  sender: string;
+  subject: string ="LALALA";
+  sender: string ="support@zigna.co";
   recipients: string[];
 
   public get request()
