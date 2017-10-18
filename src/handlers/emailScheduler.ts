@@ -3,7 +3,6 @@ import * as schedule from 'node-schedule';
 import { DataStore } from '../datastore/datastore';
 import { Logger } from '../output/logger';
 import { Email } from '../models/email';
-import { HTTPResponse } from './../output/response';
 
 aws.config.update({
     accessKeyId: "AKIAI4RQ3KB4IIAKCCKA",
@@ -19,12 +18,11 @@ export class EmailScheduler
         });
     }
 
-    public static sendEmailBlock(email: Email, res: Response) {
-        console.log(email);
+    public static sendEmailBlock(email: Email, completion: (err, data) => (void)) {
       this.sendEmail(email, (err, mailData) =>
       {
-        if (err) { HTTPResponse.error(res, 'could not send emails', 500); }
-        else { HTTPResponse.success(res); }
+        if (err) { return completion('could not send emails', null); }
+        else { return completion(null, 'successfuly sent emails'); }
       });
     };
         
