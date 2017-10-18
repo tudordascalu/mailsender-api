@@ -7,7 +7,7 @@ import { HTTPResponse } from './../output/response';
 import { Campaign } from './../models/campaign';
 import { Schedule } from './../models/schedule';
 import { Email } from './../models/email';
-import * as schedule from 'node-schedule';
+import * as nodeschedule from 'node-schedule';
 import { EmailScheduler } from '../handlers/emailScheduler';
 
 export class CampaignController
@@ -33,20 +33,20 @@ export class CampaignController
               // Add campaign schedule in db
               if(campaign.scheduledDate) {
                 // Schedule campaign
-                const scheduleBody = campaign;
-                scheduleBody.id = uuid();
-          
-                const schedule = Schedule.fromCampaign(scheduleBody);
-                DataStore.local.schedule.addOrUpdate({ id: schedule.id }, schedule.dbData, {}, 
-                (errSchedule, dbDataSchedule)=>{
-                  if(errSchedule) return HTTPResponse.error(res, 'error scheduling the campaign in db', 400);
-                  else HTTPResponse.json(res, {schedulerID: dbDataSchedule.id, campaignID: dbData.id});
-                })
+                if(!Date.parse(campaign.scheduledDate)) {
+                  return HTTPResponse.error(res, 'scheduled date must be valid', 400);
+                }
+
+                scheduleCampaign(campaign, 
+                  (errSchedule, dataSchedule)=>{
+                    if(errSchedule) return HTTPResponse.error(res, 'error scheduling the campaign in db', 400);
+                    return HTTPResponse.json(res, {schedulerID: dataSchedule.id, campaignID: dbData.id});
+                });
               }
               else {
-                // Send campaign now
+                // Campaign not scheduled
                 if (err) return HTTPResponse.error(res, 'error creating the campaign in db', 400);
-                else HTTPResponse.json(res, dbData.id);
+                return HTTPResponse.json(res, dbData.id);
               }
             },
         );
@@ -129,7 +129,7 @@ export class CampaignController
       const user = res.locals.username;
       DataStore.local.campaigns.find({ id: req.params.id , owners: user}, {},
         (err, dbData) =>{
-          if (err) { return HTTPResponse.error(res, 'campaign does not exist or you cannot access it', 400); }
+          if (err || dbData.length === 0) { return HTTPResponse.error(res, 'campaign does not exist or you cannot access it', 400); }
           
           const body = dbData[0];
           console.log(body);
@@ -139,7 +139,10 @@ export class CampaignController
             { return HTTPResponse.error(res, 'recipients field must not be empty', 400); }
       
             const email = new Email(body);
-            return EmailScheduler.sendEmailBlock(email, res);
+            EmailScheduler.sendEmailBlock(email, (errEmail, dataEmail) =>{
+              if(errEmail) { return HTTPResponse.error(res, errEmail, 400); }
+              return HTTPResponse.success(res);
+            });
           }
           else if (body['listID'])
           {
@@ -151,7 +154,10 @@ export class CampaignController
                 body.recipients = list;
       
                 const email = new Email(body);
-                return EmailScheduler.sendEmailBlock(email, res);
+                EmailScheduler.sendEmailBlock(email, (errEmail, dataEmail) =>{
+                  if(errEmail) { return HTTPResponse.error(res, errEmail, 400); }
+                  return HTTPResponse.success(res);
+                });
               },
             );
           }
@@ -159,16 +165,62 @@ export class CampaignController
     }
 }
 
-function scheduleCampaign(campaign: Schedule, res: Response) {
-    // Schedule campaign
-    campaign.id = uuid();
-    const schedule = Schedule.fromCampaign(campaign);
+function scheduleCampaign(campaign: Campaign, completion: (err, data) => (void)) {
+  // Schedule campaign
+  campaign.id = uuid();
+  const schedule = Schedule.fromCampaign(campaign);
+  //const scheduledTime = Date.parse(campaign.scheduledDate);
+  const scheduledTime = new Date((new Date()).getTime() + 20000);
+  nodeschedule.scheduleJob(scheduledTime, ()=>{
+    sendCampaign(campaign,
+      (errSchedule, dataSchedule)=>{
+        if(errSchedule) console.log(errSchedule);
+        else console.log('scheduled email sending');
+      }) 
+  });
 
-    DataStore.local.schedule.addOrUpdate({ id: schedule.id }, schedule.dbData, {}, 
-    (errSchedule, dbDataSchedule)=> 
-    { 
-      if(errSchedule) return HTTPResponse.error(res, 'error scheduling the campaign in db', 400);
-      else HTTPResponse.json(res, {schedulerID: dbDataSchedule.id, campaignID: dbData.id});
-      
-    })
+  DataStore.local.schedule.addOrUpdate({ id: schedule.id }, schedule.dbData, {}, 
+  (errSchedule, dbDataSchedule)=> 
+  { 
+    if(errSchedule) {
+      console.log("123");
+      return completion(errSchedule, null);
+    }
+    else {
+      console.log("campaign scheduled");      
+      return completion(null, dbDataSchedule);
+    }
+  })
+}
+
+function sendCampaign(campaign: Campaign, completion: (err, data) => (void)){
+
+  let body:any = campaign;
+  console.log(body);
+  if (body['recipients']) {
+    if (body.recipients.length === 0) { return completion('recipients field must not be empty', null); }
+
+    const email = new Email(body);
+    EmailScheduler.sendEmailBlock(email, (errEmail, dataEmail) =>{
+      if(errEmail) { return completion(errEmail, dataEmail) }
+      return completion(null, dataEmail);
+    });
+  }
+  else if (body['listID'])
+  {
+    DataStore.local.recipients.find({ id: body.listID }, {},
+      (err, dbData) =>
+      {
+        if (err || dbData.length === 0) { return completion('recipients lists does not exist or you cannot access it', dbData)}
+        const list = dbData[0].recipients;
+        body.recipients = list;
+
+        const email = new Email(body);
+        EmailScheduler.sendEmailBlock(email, (errEmail, dataEmail) =>{
+          if(errEmail) { return completion(errEmail, dataEmail) }
+          return completion(null, dataEmail);
+        });
+      },
+    );
+  }
 }

@@ -27,12 +27,12 @@ export class Collection
 }
 
 export const collections =
-{ users: 'users', projects: 'projects', recipients: 'recipients', blacklist: 'blacklist', campaigns: 'campaigns' };
+{ users: 'users', projects: 'projects', recipients: 'recipients', blacklist: 'blacklist', campaigns: 'campaigns', schedule: 'schedule' };
 
 export class LocalStore
 {
   private _connection: any;
-  users: Collection; projects: Collection; recipients: Collection; blacklist: Collection; campaigns: Collection;
+  users: Collection; projects: Collection; recipients: Collection; blacklist: Collection; campaigns: Collection; schedule: Collection;
 
   constructor()
   {
@@ -41,6 +41,7 @@ export class LocalStore
     this.recipients = new Collection(this.connection, collections.recipients);
     this.blacklist = new Collection(this.connection, collections.blacklist);
     this.campaigns = new Collection(this.connection, collections.campaigns);
+    this.schedule = new Collection(this.connection, collections.schedule);
   }
 
   public get connection()
