@@ -1,10 +1,14 @@
 import { Request, Response } from 'express';
 import * as uuid from 'uuid/v4';
 import { config } from '../config/config';
-import { HTTPBody } from '../protocols/http';
+import { HTTPBody, HTTPRequest } from '../protocols/http';
 import { DataStore } from './../datastore/datastore';
 import { HTTPResponse } from './../output/response';
 import { Campaign } from './../models/campaign';
+import { Schedule } from './../models/schedule';
+import { Email } from './../models/email';
+import * as schedule from 'node-schedule';
+import { EmailScheduler } from '../handlers/emailScheduler';
 
 export class CampaignController
 {
@@ -23,12 +27,27 @@ export class CampaignController
         body.id = uuid();
         body.owners = [user];
         const campaign = Campaign.fromRequest(body);
-
         DataStore.local.campaigns.addOrUpdate({ id: campaign.id }, campaign.dbData, {},
             (err, dbData) =>
             {   
-              if (err) return HTTPResponse.error(res, 'error creating the campaign in db', 400);
-              else HTTPResponse.json(res, dbData.id);
+              // Add campaign schedule in db
+              if(campaign.scheduledDate) {
+                // Schedule campaign
+                const scheduleBody = campaign;
+                scheduleBody.id = uuid();
+          
+                const schedule = Schedule.fromCampaign(scheduleBody);
+                DataStore.local.schedule.addOrUpdate({ id: schedule.id }, schedule.dbData, {}, 
+                (errSchedule, dbDataSchedule)=>{
+                  if(errSchedule) return HTTPResponse.error(res, 'error scheduling the campaign in db', 400);
+                  else HTTPResponse.json(res, {schedulerID: dbDataSchedule.id, campaignID: dbData.id});
+                })
+              }
+              else {
+                // Send campaign now
+                if (err) return HTTPResponse.error(res, 'error creating the campaign in db', 400);
+                else HTTPResponse.json(res, dbData.id);
+              }
             },
         );
 
@@ -106,4 +125,50 @@ export class CampaignController
       );
     }
 
+    public static sendCampaign(req: Request, res: Response, next: Function) {
+      const user = res.locals.username;
+      DataStore.local.campaigns.find({ id: req.params.id , owners: user}, {},
+        (err, dbData) =>{
+          if (err) { return HTTPResponse.error(res, 'campaign does not exist or you cannot access it', 400); }
+          
+          const body = dbData[0];
+          console.log(body);
+          if (body['recipients'])
+          {
+            if (body.recipients.length === 0)
+            { return HTTPResponse.error(res, 'recipients field must not be empty', 400); }
+      
+            const email = new Email(body);
+            return EmailScheduler.sendEmailBlock(email, res);
+          }
+          else if (body['listID'])
+          {
+            DataStore.local.recipients.find({ id: body.listID }, {},
+              (err, dbData) =>
+              {
+                if (err || dbData.length === 0) { return HTTPResponse.error(res, 'recipients lists does not exist or you cannot access it', 400); }
+                const list = dbData[0].recipients;
+                body.recipients = list;
+      
+                const email = new Email(body);
+                return EmailScheduler.sendEmailBlock(email, res);
+              },
+            );
+          }
+        });
+    }
+}
+
+function scheduleCampaign(campaign: Schedule, res: Response) {
+    // Schedule campaign
+    campaign.id = uuid();
+    const schedule = Schedule.fromCampaign(campaign);
+
+    DataStore.local.schedule.addOrUpdate({ id: schedule.id }, schedule.dbData, {}, 
+    (errSchedule, dbDataSchedule)=> 
+    { 
+      if(errSchedule) return HTTPResponse.error(res, 'error scheduling the campaign in db', 400);
+      else HTTPResponse.json(res, {schedulerID: dbDataSchedule.id, campaignID: dbData.id});
+      
+    })
 }
