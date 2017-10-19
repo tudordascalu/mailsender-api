@@ -37,7 +37,7 @@ export class CampaignController
                   return HTTPResponse.error(res, 'scheduled date must be valid', 400);
                 }
 
-                scheduleCampaign(campaign, 
+                EmailScheduler.scheduleCampaign(campaign, 
                   (errSchedule, dataSchedule)=>{
                     if(errSchedule) return HTTPResponse.error(res, 'error scheduling the campaign in db', 400);
                     return HTTPResponse.json(res, {schedulerID: dataSchedule.id, campaignID: dbData.id});
@@ -125,7 +125,8 @@ export class CampaignController
       );
     }
 
-    public static sendCampaign(req: Request, res: Response, next: Function) {
+    public static sendCampaign(req: Request, res: Response, next: Function)
+    {
       const user = res.locals.username;
       DataStore.local.campaigns.find({ id: req.params.id , owners: user}, {},
         (err, dbData) =>{
@@ -163,21 +164,96 @@ export class CampaignController
           }
         });
     }
-}
+/*
+    public static cancelSchedule(req: Request, res: Response, next: Function)
+    {
+      const user = res.locals.username;
+      DataStore.local.schedule.find({ id: req.params.id }, {},
+        (err, dbData) =>
+        {   
+          if (err || dbData.length === 0) { return HTTPResponse.error(res, 'could not cancel job', 400); }
+          
+          const schedule = dbData[0];
+          nodeschedule.id.cancel();
+          return HTTPResponse.success(res);
+        },
+      );
+    }
+*/
+    public static updateCampaign(req: Request, res: Response, next: Function)
+    {
+      const user = res.locals.username;
+      const body = req.body;
+      const requiredFields = [ 'body', 'scheduledDate', 'listID' ];
+      
+      let missing;
+      if (missing = HTTPBody.missingFields(body, requiredFields))
+      { return HTTPResponse.missing(res, missing, 'body'); }
+      
+      DataStore.local.campaigns.find({ id: req.params.id, owners: user }, {},
+        (err, dbData) =>
+        {
+          if (err || dbData.length === 0) { return HTTPResponse.error(res, 'campaign does not exist or you cannot access it', 400); }
+          
+          let campaign = new Campaign(dbData[0]);
+          campaign.updateCampaign(body);  
 
+          DataStore.local.campaigns.addOrUpdate({ id: campaign.id }, campaign, {},
+            (err, dbData) =>
+            {
+              if (err) { return HTTPResponse.error(res, 'error updating the campaign in db', 400); }
+              
+              if(body.scheduledDate){
+
+                let rescheduleTime = null;
+                if(Date.parse(body.scheduledDate)){
+                  rescheduleTime = Date.parse(body.scheduledDate);
+                } 
+                
+                DataStore.local.schedule.find({ id: campaign.id }, {},
+                  (err, dbData) =>
+                  {   
+                    if (err || dbData.length === 0) { return HTTPResponse.error(res, 'could not reschedule/cancel job', 400); }
+                    
+                    let schedule = new Schedule(dbData[0]);
+                    const job = EmailScheduler.rescheduleCampaign(schedule.scheduleName, rescheduleTime);
+                    
+                    if(job) {
+                      schedule.scheduleName = job.name;
+                      EmailScheduler.updateScheduleDB(schedule);
+                      return HTTPResponse.json({"tudor":"tudor"}, 200);
+                    } 
+                    EmailScheduler.deleteScheduleDB(schedule);
+                    return HTTPResponse.json({"tudor":"tudor"}, 200);
+                  },
+                );
+              }
+              else {
+                campaign = Campaign.fromDatastore(dbData[0]);
+                return HTTPResponse.json(res, campaign.responseData);    
+              }
+            },
+          );
+        },
+      );
+    }
+}
+/*
 function scheduleCampaign(campaign: Campaign, completion: (err, data) => (void)) {
   // Schedule campaign
-  campaign.id = uuid();
+
   const schedule = Schedule.fromCampaign(campaign);
   //const scheduledTime = Date.parse(campaign.scheduledDate);
-  const scheduledTime = new Date((new Date()).getTime() + 20000);
-  nodeschedule.scheduleJob(scheduledTime, ()=>{
+  const scheduledTime = new Date((new Date()).getTime() + 60000);
+  var job = nodeschedule.scheduleJob(scheduledTime, ()=>{
     sendCampaign(campaign,
       (errSchedule, dataSchedule)=>{
         if(errSchedule) console.log(errSchedule);
         else console.log('scheduled email sending');
       }) 
   });
+
+  schedule.scheduleName = job.name;
 
   DataStore.local.schedule.addOrUpdate({ id: schedule.id }, schedule.dbData, {}, 
   (errSchedule, dbDataSchedule)=> 
@@ -201,7 +277,7 @@ function sendCampaign(campaign: Campaign, completion: (err, data) => (void)){
     if (body.recipients.length === 0) { return completion('recipients field must not be empty', null); }
 
     const email = new Email(body);
-    EmailScheduler.sendEmailBlock(email, (errEmail, dataEmail) =>{
+    EmailScheduler.sendEmailBlock(email, (errEmail, dataEmail) => {
       if(errEmail) { return completion(errEmail, dataEmail) }
       return completion(null, dataEmail);
     });
@@ -224,3 +300,4 @@ function sendCampaign(campaign: Campaign, completion: (err, data) => (void)){
     );
   }
 }
+*/
