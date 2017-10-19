@@ -25,7 +25,11 @@ export const routes: Route[] =
   new Route('Create campaign', '/campaigns', 'POST', secureAPI, CampaignController.createCampaign),  
   new Route('Get all campaigns', '/campaigns', 'GET', secureAPI, CampaignController.getAllCampaigns),
   new Route('Get spicific campaign', '/campaigns/:id', 'GET', secureAPI, CampaignController.getSpecificCampaign),
-  new Route('Send campaign', '/send/:id', 'GET', secureAPI, CampaignController.sendCampaign)
+  new Route('Delete spicific campaign', '/campaigns/:id/delete', 'POST', secureAPI, CampaignController.deleteCampaign),
+  new Route('Send campaign', '/send/:id', 'GET', secureAPI, CampaignController.sendCampaign),
+  //new Route('Cancel scheduled campaign', '/cancel/:id', 'GET', secureAPI, CampaignController.cancelSchedule)
+  new Route('Update scheduled campaign', '/campaigns/:id/update', 'POST', secureAPI, CampaignController.updateCampaign)
+  
 
 ];
 

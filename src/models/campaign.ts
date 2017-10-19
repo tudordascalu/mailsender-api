@@ -31,6 +31,26 @@ export class Campaign
         return site;
       }
 
+      public updateCampaign(data: any)
+      { 
+        if(data.body) {
+          this.body = data.body;
+        }
+
+        if(data.scheduledDate) {
+          if(Date.parse(data.scheduledDate)){
+            this.scheduledDate = data.scheduledDate;
+          } else {
+            this.scheduledDate = null;
+          }
+        }
+
+        if(data.listID){
+          this.listID = data.listID;
+        }
+
+      }
+
       public get responseData()
       {
         const parameters =

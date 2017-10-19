@@ -5,6 +5,7 @@ export class Schedule
     listID: string;
     body: string;
     recipients: string[];
+    scheduleName: string;
     //subject: string;
     //sender: string;
     
@@ -15,6 +16,13 @@ export class Schedule
       const parameters: any = {};
       Object.assign(parameters, this);
       return parameters;
+    }
+
+    public static fromRequest(data: any): Schedule
+    {
+      const site = new Schedule(data);
+      // Do setup specific for websites created from a request here
+      return site;
     }
 
     public static fromCampaign(data: any): Schedule
