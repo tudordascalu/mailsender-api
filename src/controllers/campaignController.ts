@@ -33,7 +33,7 @@ export class CampaignController
               // Add campaign schedule in db
               if(campaign.scheduledDate) {
                 // Schedule campaign
-                if(!Date.parse(campaign.scheduledDate)) {
+                if(!Date.parse(campaign.scheduledDate) || Date.parse(campaign.scheduledDate) < Date.now()) {
                   return HTTPResponse.error(res, 'scheduled date must be valid', 400);
                 }
 
@@ -181,22 +181,22 @@ export class CampaignController
           
           let campaign = new Campaign(dbData[0]);
           campaign.updateCampaign(body);
-          EmailScheduler.updateCampaignDB(campaign, (errUpdate, resUpdate) =>{
-            if(errUpdate) { return HTTPResponse.error(res, 'campaign does not exist or you cannot access it', 400); }
-            
-            if(!body.scheduledDate){
-              //cancel campaign
-            } else{
+          if(body.scheduledDate) {
+            EmailScheduler.cancelCampaignSending(campaign);
+          }
+          
+          EmailScheduler.updateCampaignDB(campaign, (errUpdate, resUpdate) => {
+            if(errUpdate) {  return HTTPResponse.error(res, 'campaign could not be updated', 400); }
 
-              if(Date.parse(body.scheduledDate)) {
+            if(body.scheduledDate) {
+              if(Date.parse(body.scheduledDate) > Date.now()) {
                 EmailScheduler.rescheduleCampaign(campaign);
               } else {
                 console.log("Date is not valid");
               }
             }
-            return HTTPResponse.json(res, campaign.responseData); 
           });
-          
+          return HTTPResponse.json(res, campaign.responseData); 
         });
     }
 }

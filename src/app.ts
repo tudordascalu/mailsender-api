@@ -5,6 +5,7 @@ import * as path from 'path';
 import { config } from './config/config';
 import { DataStore } from './datastore/datastore';
 import { ComplaintHandler } from './handlers/complaintHandler';
+import { EmailScheduler } from './handlers/emailScheduler';
 import { Logger } from './output/logger';
 import { Router } from './routing/router';
 
@@ -18,7 +19,7 @@ import { Router } from './routing/router';
 
 initializeApp();
 // scheduleTasks()
-
+scheduleEmailSending();
 /************
  * Routines *
  ************/
@@ -47,6 +48,26 @@ function scheduleTasks()
 
   schedule.scheduleJob(scheduledTime, () =>
     { ComplaintHandler.handleComplaints(); });
+}
+
+function scheduleEmailSending()
+{
+  DataStore.local.schedule.find({}, {}, (err, data) =>{
+    if(err){
+      console.log("There are no scheduled emails");
+    }
+    const scheduledEmails = data;
+    for(let i = 0; i < scheduledEmails.length; i++){
+      if(Date.parse(scheduledEmails[i].scheduledDate) > Date.now()){
+        EmailScheduler.scheduleCampaign(scheduledEmails[i], (err, res) => {
+          if(err) console.log(err);
+          else{
+            console.log("email scheduled");
+          }
+        });
+      }
+    }
+  });
 }
 
 /* Configure parsers */

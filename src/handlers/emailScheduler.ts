@@ -14,12 +14,6 @@ aws.config.update({
 const ses = new aws.SES();
 export class EmailScheduler
 {
-    public static scheduleEmails() {
-        DataStore.local.schedule.find({}, {},  (err, dbData) =>{
-            
-        });
-    }
-
     public static sendEmailBlock(email: Email, completion: (err, data) => (void)) {
       this.sendEmail(email, (err, mailData) =>
       {
@@ -55,36 +49,32 @@ export class EmailScheduler
         );
     }
 
-    // public static rescheduleCampaign(scheduleName, rescheduleTime = null){
-        
-    //     if(nodeschedule.scheduledJobs[scheduleName]){
-    //         console.log("da");
-    //         nodeschedule.scheduledJobs[scheduleName].cancel();
-    //     }
-
-    //     if(!rescheduleTime){
-    //         console.log('Campaign sending was canceled')
-    //         return null;
-    //     }
-
-    //     const job = nodeschedule.scheduleJob(rescheduleTime, ()=>{});
-    //     console.log(job);
-    //     return job;
-    // }
-
-    public static rescheduleCampaign(campaign){
+    public static rescheduleCampaign(campaign) {
         const rescheduleTime = Date.parse(campaign.scheduledDate);
         this.deleteScheduleDB(campaign);
-        // const job = nodeschedule.scheduleJob(rescheduleTime, ()=>{});
-        // const schedule = Schedule.fromCampaign(campaign);
-        // schedule.scheduleName = job.name;
+
         this.scheduleCampaign(campaign, (err, data) => {
             if(err) { console.log("could not schedule campaign"); }
             else{
                 console.log("campaign was scheduled");
             }
         })
-        // this.updateScheduleDB(schedule);
+    }
+
+    public static cancelCampaignSending(campaign: Campaign){
+        
+        DataStore.local.schedule.find({ id: campaign.id }, {},
+              (err, dbData) =>{
+                if(err) {
+                    console.log("Campaign was not scheduled for sending");
+                    return;
+                }
+                const schedule = Schedule.fromRequest(dbData[0]);
+                if(nodeschedule.scheduledJobs[schedule.scheduleName]){
+                    console.log("Campaign sending was canceled");
+                    nodeschedule.scheduledJobs[schedule.scheduleName].cancel();
+                }
+        });
     }
 
     public static updateScheduleDB(schedule: Schedule) {
@@ -122,12 +112,10 @@ export class EmailScheduler
         );
     }
 
-    public static scheduleCampaign(campaign: Campaign, completion: (err, data) => (void)) {
+    public static scheduleCampaign(campaign, completion: (err, data) => (void)) {
         // Schedule campaign
-      
         const schedule = Schedule.fromCampaign(campaign);
-        const scheduledTime = Date.parse(campaign.scheduledDate);
-        //const scheduledTime = new Date((new Date()).getTime() + 60000);
+        const scheduledTime = new Date(campaign.scheduledDate).getTime();
         var job = nodeschedule.scheduleJob(scheduledTime, ()=>{
             this.sendCampaign(campaign,
             (errSchedule, dataSchedule)=> {
@@ -135,20 +123,16 @@ export class EmailScheduler
               else console.log('scheduled email sending');
             }) 
         });
-      
+        
         schedule.scheduleName = job.name;
-      
         DataStore.local.schedule.addOrUpdate({ id: schedule.id }, schedule.dbData, {}, 
         (errSchedule, dbDataSchedule)=> 
         { 
           if(errSchedule) {
-            console.log("123");
+            console.log("Could not save schedule in db");
             return completion(errSchedule, null);
           }
-          else {
-            console.log("campaign scheduled");      
             return completion(null, dbDataSchedule);
-          }
         })
       }
       
