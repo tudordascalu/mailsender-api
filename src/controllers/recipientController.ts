@@ -46,7 +46,7 @@ export class RecipientController
         let userLists = [];
         for (let i = 0; i < dbData.length; i++)
         {
-          const list = RecipientList.fromDatastore(dbData[0]);
+          const list = RecipientList.fromDatastore(dbData[i]);
           userLists.push(list.responseData);
         }
         HTTPResponse.json(res, userLists);

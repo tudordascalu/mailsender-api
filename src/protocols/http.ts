@@ -91,6 +91,14 @@ export class HTTPBody
       { return (container[field] === undefined); });
       return (missing.length > 0) ? (missing) : (null);
   }
+  
+  public static hasAnyRequiredFields(container: {}, requiredFields: string[]): boolean
+  {
+    requiredFields.filter( (field) =>{
+      if(container[field]) return true;
+    })
+    return false;
+  }
 
   private static missingArrayFields(container: any[], requiredFields: string[]): any
   {
