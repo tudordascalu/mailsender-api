@@ -13,7 +13,7 @@ export class RecipientController
   public static createList(req: Request, res: Response, next: Function)
   {
     const body = req.body;
-    const user = res.locals.username;
+    const user = res.locals.user.realtor;
 
     let missing;
     if (missing = HTTPBody.missingFields(body, ['recipients']))
@@ -23,7 +23,7 @@ export class RecipientController
     { return HTTPResponse.error(res, 'recipients must not be empty', 400); }
 
     body.id = uuid();
-    body.owners = [user];
+    body.owner = user;
     const list = RecipientList.fromRequest(body);
 
     DataStore.local.recipients.addOrUpdate({ id: list.id }, list.dbData, {},
@@ -37,9 +37,8 @@ export class RecipientController
 
   public static getAllLists(req: Request, res: Response, next: Function)
   {
-    const user = res.locals.username;
-
-    DataStore.local.recipients.find({ owners: user }, {},
+    const user = res.locals.user.realtor;
+    DataStore.local.recipients.find({ owner: user }, {},
       (err, dbData) =>
       {
         if (err || dbData.length === 0) { return HTTPResponse.json(res, []); }
@@ -56,9 +55,8 @@ export class RecipientController
 
   public static getSpecificList(req: Request, res: Response, next: Function)
   {
-    const user = res.locals.username;
-
-    DataStore.local.recipients.find({ id: req.params.id, owners: user }, {},
+    const user = res.locals.user.realtor;
+    DataStore.local.recipients.find({ id: req.params.id, owner: user }, {},
       (err, dbData) =>
       {
         if (err || dbData.length === 0) { return HTTPResponse.error(res, 'recipients lists does not exist or you cannot access it', 400); }
@@ -70,49 +68,30 @@ export class RecipientController
 
   public static deleteList(req: Request, res: Response, next: Function)
   {
-    const user = res.locals.username;
-
-    DataStore.local.recipients.find({ id: req.params.id, owners: user }, {},
+    const user = res.locals.user.realtor;
+    DataStore.local.recipients.find({ id: req.params.id, owner: user }, {},
       (err, dbData) =>
       {
         if (err || dbData.length === 0) { return HTTPResponse.error(res, 'recipients lists does not exist or you cannot access it', 400); }
+        
         const list = dbData[0];
-
-        if (list.owners.length === 1)
-        {
-          DataStore.local.recipients.remove({ id: list.id }, {},
-            (err, dbData) =>
-            {
-              if (err) { return HTTPResponse.error(res, 'recipients lists does not exist or you cannot access it', 400); }
-              HTTPResponse.success(res);
-            },
-          );
-        }
-        else
-        {
-          for (let i = 0; i < list.owners.length; i++)
+        DataStore.local.recipients.remove({ id: list.id }, {},
+          (err, dbData) =>
           {
-            if (list.owners[i] === user) { list.owners.splice(i, 1); }
-            break;
-          }
-          DataStore.local.recipients.addOrUpdate({ id: list.id }, list, {},
-            (err, dbData) =>
-            {
-              if (err || dbData.length === 0) { return HTTPResponse.error(res, 'error updating the list in db', 400); }
-              HTTPResponse.success(res);
-            },
-          );
-        }
+            if (err) { return HTTPResponse.error(res, 'recipients lists does not exist or you cannot access it', 400); }
+            HTTPResponse.success(res);
+          },
+        );
       },
     );
   }
 
   public static updateList(req: Request, res: Response, next: Function)
   {
-    const user = res.locals.username;
+    const user = res.locals.user.realtor;
     const recipients = { addRecipients: req.body.add, deleteRecipients: req.body.delete};
 
-    DataStore.local.recipients.find({ id: req.params.id, owners: user }, {},
+    DataStore.local.recipients.find({ id: req.params.id, owner: user }, {},
       (err, dbData) =>
       {
         if (err || dbData.length === 0) { return HTTPResponse.error(res, 'recipients lists does not exist or you cannot access it', 400); }

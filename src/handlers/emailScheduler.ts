@@ -120,7 +120,7 @@ export class EmailScheduler
             this.sendCampaign(campaign,
             (errSchedule, dataSchedule)=> {
               if(errSchedule) console.log(errSchedule);
-              else console.log('scheduled email sending');
+              else console.log('Email sent');
             }) 
         });
         

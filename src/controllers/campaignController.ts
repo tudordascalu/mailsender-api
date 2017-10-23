@@ -14,7 +14,7 @@ export class CampaignController
 {
     public static createCampaign(req: Request, res: Response, next: Function){
         const body = req.body;
-        const user = res.locals.username;
+        const user = res.locals.user.realtor;
         const requiredFields = [ 'body', 'scheduledDate', 'listID' ];
 
         let missing;
@@ -25,7 +25,7 @@ export class CampaignController
         { return HTTPResponse.error(res, 'body must not be empty', 400); }
 
         body.id = uuid();
-        body.owners = [user];
+        body.owner = user;
         const campaign = Campaign.fromRequest(body);
         DataStore.local.campaigns.addOrUpdate({ id: campaign.id }, campaign.dbData, {},
             (err, dbData) =>
@@ -40,7 +40,7 @@ export class CampaignController
                 EmailScheduler.scheduleCampaign(campaign, 
                   (errSchedule, dataSchedule)=>{
                     if(errSchedule) return HTTPResponse.error(res, 'error scheduling the campaign in db', 400);
-                    return HTTPResponse.json(res, {schedulerID: dataSchedule.id, campaignID: dbData.id});
+                    return HTTPResponse.json(res, {message: "Campaign scheduled for sending", campaignID: dbData.id});
                 });
               }
               else {
@@ -55,9 +55,9 @@ export class CampaignController
 
     public static getAllCampaigns(req: Request, res: Response, next: Function)
     {
-      const user = res.locals.username;
+      const user = res.locals.user.realtor;
   
-      DataStore.local.campaigns.find({ owners: user }, {},
+      DataStore.local.campaigns.find({ owner: user }, {},
         (err, dbData) =>
         {
           if (err || dbData.length === 0) { return HTTPResponse.json(res, []); }
@@ -75,8 +75,8 @@ export class CampaignController
 
     public static getSpecificCampaign(req: Request, res: Response, next: Function)
     {
-      const user = res.locals.username;
-      DataStore.local.campaigns.find({ id: req.params.id , owners: user}, {},
+      const user = res.locals.user.realtor;
+      DataStore.local.campaigns.find({ id: req.params.id , owner: user}, {},
         (err, dbData) =>
         {
           if (err || dbData.length === 0) { return HTTPResponse.error(res, 'campaign does not exist or you cannot access it', 400); }
@@ -88,47 +88,27 @@ export class CampaignController
 
     public static deleteCampaign(req: Request, res: Response, next: Function)
     {
-      const user = res.locals.username;
-  
-      DataStore.local.campaigns.find({ id: req.params.id, owners: user }, {},
+      const user = res.locals.user.realtor;
+      DataStore.local.campaigns.find({ id: req.params.id, owner: user }, {},
         (err, dbData) =>
         {
           if (err || dbData.length === 0) { return HTTPResponse.error(res, 'campaign do not exist or you cannot access it', 400); }
           const campaign = dbData[0];
-  
-          if (campaign.owners.length === 1)
-          {
-            DataStore.local.campaigns.remove({ id: campaign.id }, {},
-              (err, dbData) =>
-              {
-                if (err) { return HTTPResponse.error(res, 'campaign does not exist or you cannot access it', 400); }
-                HTTPResponse.success(res);
-              },
-            );
-          }
-          else
-          {
-            for (let i = 0; i < campaign.owners.length; i++)
+          DataStore.local.campaigns.remove({ id: campaign.id }, {},
+            (err, dbData) =>
             {
-              if (campaign.owners[i] === user) { campaign.owners.splice(i, 1); }
-              break;
-            }
-            DataStore.local.campaigns.addOrUpdate({ id: campaign.id }, campaign, {},
-              (err, dbData) =>
-              {
-                if (err || dbData.length === 0) { return HTTPResponse.error(res, 'error updating the campaign in db', 400); }
-                HTTPResponse.success(res);
-              },
-            );
-          }
+              if (err) { return HTTPResponse.error(res, 'campaign does not exist or you cannot access it', 400); }
+              HTTPResponse.success(res);
+            },
+          );
         },
       );
     }
 
     public static sendCampaign(req: Request, res: Response, next: Function)
     {
-      const user = res.locals.username;
-      DataStore.local.campaigns.find({ id: req.params.id , owners: user}, {},
+      const user = res.locals.user.realtor;
+      DataStore.local.campaigns.find({ id: req.params.id , owner: user}, {},
         (err, dbData) =>{
           if (err || dbData.length === 0) { return HTTPResponse.error(res, 'campaign does not exist or you cannot access it', 400); }
           
@@ -167,14 +147,14 @@ export class CampaignController
 
     public static updateCampaign(req: Request, res: Response, next: Function)
     {
-      const user = res.locals.username;
+      const user = res.locals.user.realtor;
       const body = req.body;
       const requiredFields = [ 'body', 'scheduledDate', 'listID' ];
     
       if (HTTPBody.hasAnyRequiredFields(body, requiredFields))
       { return HTTPResponse.missing(res, [ 'body', 'scheduledDate', 'listID' ], 'body'); }
       
-      DataStore.local.campaigns.find({ id: req.params.id, owners: user }, {},
+      DataStore.local.campaigns.find({ id: req.params.id, owner: user }, {},
         (err, dbData) =>
         {
           if (err || dbData.length === 0) { return HTTPResponse.error(res, 'campaign does not exist or you cannot access it', 400); }
