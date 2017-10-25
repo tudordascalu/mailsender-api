@@ -29,7 +29,7 @@ export class CampaignController
         DataStore.local.recipients.find({id: body.listID}, {},
             (err, dbList) =>
             {
-                if (err || dbList.length < 1) return HTTPResponse.error(res, 'error finding a list with the specified id', 400);
+                if (err || dbList.length < 1) return HTTPResponse.error(res, 'error finding a list with the specified id', 404);
 
                 body.id = uuid();
                 body.owners = [ user ];
@@ -40,7 +40,7 @@ export class CampaignController
                 if(campaign.scheduledDate)
                 {
                     if(!Date.parse(campaign.scheduledDate) || Date.parse(campaign.scheduledDate) < Date.now())
-                    { return HTTPResponse.error(res, 'scheduled date must be valid', 400); }
+                    { return HTTPResponse.error(res, 'scheduled date must be valid', 422); }
 
                     scheduleFlag = true;
                 }
@@ -49,7 +49,7 @@ export class CampaignController
                 DataStore.local.campaigns.addOrUpdate({ id: campaign.id }, campaign.dbData, {},
                     (err, dbData) =>
                     {
-                        if (err) return HTTPResponse.error(res, 'error creating the campaign', 400);
+                        if (err) return HTTPResponse.error(res, 'error creating the campaign', 500);
 
                         if(scheduleFlag)
                         {
@@ -96,7 +96,7 @@ export class CampaignController
         DataStore.local.campaigns.find({ id: req.params.id , owners: user}, {},
             (err, dbData) =>
             {
-                if (err || dbData.length === 0) { return HTTPResponse.error(res, 'campaign does not exist or you cannot access it', 400); }
+                if (err || dbData.length === 0) { return HTTPResponse.error(res, 'campaign does not exist or you cannot access it', 404); }
 
                 const campaign = Campaign.fromDatastore(dbData[0]);
                 HTTPResponse.json(res, campaign.responseData);
@@ -183,7 +183,7 @@ export class CampaignController
         DataStore.local.campaigns.find({ id: req.params.id, owners: user }, {},
             async (err, dbData) =>
             {
-                if (err || dbData.length === 0) { return HTTPResponse.error(res, 'campaign does not exist or you cannot access it', 400); }
+                if (err || dbData.length === 0) { return HTTPResponse.error(res, 'campaign does not exist or you cannot access it', 404); }
 
                 let campaign = new Campaign(dbData[0]);
                 campaign.updateCampaign(body);
@@ -192,7 +192,7 @@ export class CampaignController
                 if(body.scheduledDate)
                 {
                     if(!Date.parse(body.scheduledDate) || Date.parse(body.scheduledDate) < Date.now())
-                    { return HTTPResponse.error(res, 'scheduled date must be valid', 400); }
+                    { return HTTPResponse.error(res, 'scheduled date must be valid', 422); }
 
                     // Cancel the previous schedule
                     await EmailScheduler.cancelCampaignSending(campaign);
@@ -204,7 +204,7 @@ export class CampaignController
                 // Update campaign inside our db
                 EmailScheduler.updateCampaignDB(campaign, (errUpdate, resUpdate) =>
                 {
-                    if(errUpdate) {  return HTTPResponse.error(res, 'campaign could not be updated', 400); }
+                    if(errUpdate) {  return HTTPResponse.error(res, 'campaign could not be updated', 500); }
                     return HTTPResponse.json(res, campaign.responseData);
                 });
             }
