@@ -1,5 +1,5 @@
 export class Schedule
-{   
+{
     id: string;
     scheduledDate: string;
     listID: string;
@@ -8,7 +8,7 @@ export class Schedule
     scheduleName: string;
     //subject: string;
     //sender: string;
-    
+
     constructor(data: any){ Object.assign(this, data); }
 
     get dbData()
@@ -26,12 +26,10 @@ export class Schedule
     }
 
     public static fromCampaign(data: any): Schedule
-    {    
+    {
         const site: any = new Schedule(data);
         // Do setup specific for websites created from a database query here
         return site;
     }
-  
-
 
 }
