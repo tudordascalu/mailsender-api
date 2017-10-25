@@ -21,7 +21,7 @@ export class EmailScheduler
         else { return completion(null, 'successfuly sent emails'); }
       });
     };
-        
+
     public static sendEmail(email: Email, completion: (err, data) => (void)) {
         DataStore.local.blacklist.find({ name: 'blacklist' }, {},
             (err, dbData) =>
@@ -62,7 +62,7 @@ export class EmailScheduler
     }
 
     public static cancelCampaignSending(campaign: Campaign){
-        
+
         DataStore.local.schedule.find({ id: campaign.id }, {},
               (err, dbData) =>{
                 if(err) {
@@ -81,7 +81,7 @@ export class EmailScheduler
         DataStore.local.schedule.addOrUpdate({ id: schedule.id }, schedule, {},
             (err, dbData) =>{
                 if(err )  {
-                    console.log("could not update campaign in schedule collection"); 
+                    console.log("could not update campaign in schedule collection");
                     return;
                 };
                 console.log("Campaign updated in schedule db")
@@ -104,7 +104,7 @@ export class EmailScheduler
         DataStore.local.schedule.remove({ id: campaign.id }, {},
             (err, dbData) =>{
                 if(err )  {
-                    console.log("could not remove campaign in schedule collection"); 
+                    console.log("could not remove campaign in schedule collection");
                     return;
                 };
                 console.log("Campaign removed in schedule db")
@@ -121,13 +121,13 @@ export class EmailScheduler
             (errSchedule, dataSchedule)=> {
               if(errSchedule) console.log(errSchedule);
               else console.log('Email sent');
-            }) 
+            })
         });
-        
+
         schedule.scheduleName = job.name;
-        DataStore.local.schedule.addOrUpdate({ id: schedule.id }, schedule.dbData, {}, 
-        (errSchedule, dbDataSchedule)=> 
-        { 
+        DataStore.local.schedule.addOrUpdate({ id: schedule.id }, schedule.dbData, {},
+        (errSchedule, dbDataSchedule)=>
+        {
           if(errSchedule) {
             console.log("Could not save schedule in db");
             return completion(errSchedule, null);
@@ -135,14 +135,14 @@ export class EmailScheduler
             return completion(null, dbDataSchedule);
         })
       }
-      
+
       public static sendCampaign(campaign: Campaign, completion: (err, data) => (void)){
-      
+
         let body:any = campaign;
         console.log(body);
         if (body['recipients']) {
           if (body.recipients.length === 0) { return completion('recipients field must not be empty', null); }
-      
+
           const email = new Email(body);
           EmailScheduler.sendEmailBlock(email, (errEmail, dataEmail) => {
             if(errEmail) { return completion(errEmail, dataEmail) }
@@ -157,7 +157,7 @@ export class EmailScheduler
               if (err || dbData.length === 0) { return completion('recipients lists does not exist or you cannot access it', dbData)}
               const list = dbData[0].recipients;
               body.recipients = list;
-      
+
               const email = new Email(body);
               EmailScheduler.sendEmailBlock(email, (errEmail, dataEmail) =>{
                 if(errEmail) { return completion(errEmail, dataEmail) }
@@ -167,5 +167,5 @@ export class EmailScheduler
           );
         }
       }
-      
+
 }

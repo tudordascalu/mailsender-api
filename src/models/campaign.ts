@@ -1,68 +1,66 @@
 export class Campaign
 {
-    static keys = ['id', 'body', 'scheduledDate', 'listID', 'owner'];
-    
-      id: string;
-      body: string[];
-      scheduledDate: string;
-      owner: string;
-      listID : string;
+    static keys = ['id', 'body', 'subject', 'scheduledDate', 'listID', 'owners'];
 
-      get dbData()
-      {
+    id?: string;
+    body?: string;
+    subject?: string;
+    scheduledDate?: string;
+    listID?: string;
+    owners?: string[];
+
+    get dbData()
+    {
         const parameters: any = {};
         Object.assign(parameters, this);
         return parameters;
-      }
-      
-      constructor(data: any) { Object.assign(this, data);}
+    }
 
-      public static fromRequest(data: any): Campaign
-      {
+    constructor(data: Campaign)
+    {
+        for (let i = 0; i < Campaign.keys.length; i++)
+        {
+            const key = Campaign.keys[i]
+            if (data[key] !== undefined) { this[key] = data[key] }
+        }
+    }
+
+    // Do setup specific for websites created from a request here
+    public static fromRequest(data: Campaign): Campaign
+    {
         const site = new Campaign(data);
-        // Do setup specific for websites created from a request here
         return site;
-      }
-        
-      public static fromDatastore(data: any): Campaign
-      {
+    }
+
+    // Do setup specific for websites created from a database query here
+    public static fromDatastore(data: Campaign): Campaign
+    {
         const site: any = new Campaign(data);
-        // Do setup specific for websites created from a database query here
         return site;
-      }
+    }
 
-      public updateCampaign(data: any)
-      { 
-        if(data.body) {
-          this.body = data.body;
+    public updateCampaign(data: Campaign)
+    {
+        const keys = ['body', 'subject', 'listID'];
+
+        for (let i = 0; i < keys.length; i++)
+        {
+            const key = keys[i]
+            if (data[key] !== undefined) { this[key] = data[key] }
         }
+    }
 
-        if(data.scheduledDate) {
-          if(Date.parse(data.scheduledDate)){
-            this.scheduledDate = data.scheduledDate;
-          } else {
-            this.scheduledDate = null;
-          }
-        }
-
-        if(data.listID){
-          this.listID = data.listID;
-        }
-
-      }
-
-      public get responseData()
-      {
+    public get responseData()
+    {
         const parameters =
         {
           id: this.id,
           body: this.body,
+          subject: this.subject,
           scheduledDate: this.scheduledDate,
           listID: this.listID
         };
         return parameters;
-      }
-    
-
+    }
 
 }
