@@ -9,7 +9,7 @@ const alg = 'RS256'; // "HS256"
 // let privateKey = fs.readFileSync("keys/private-test.pem")
 const publicKey = fs.readFileSync('keys/public.pem');
 
-export function validate(token: any): { err: any, username: String }
+export function validate(token: any): { err: any, user: any }
 {
   let options =
   {
@@ -23,13 +23,17 @@ export function validate(token: any): { err: any, username: String }
   try
   { decoded = jwt.verify(token, publicKey, options); }
   catch (err)
-  { return { err: err, username: null }; }
+  { return { err: err, user: null }; }
 
   if (decoded == null)
-  { return { err: 'Invalid token', username: null }; }
+  { return { err: 'Invalid token', user: null }; }
 
-  let user = decoded.unique_name;
-  return {err: null, username: user};
+  const user =
+  {
+    realtor: decoded.realtorID,
+    email: decoded.email
+  };
+  return {err: null, user: user};
 }
 
 // export function issue()

@@ -1,11 +1,11 @@
 export class Campaign
 {
-    static keys = ['id', 'body', 'scheduledDate', 'listID', 'owners'];
+    static keys = ['id', 'body', 'scheduledDate', 'listID', 'owner'];
     
       id: string;
       body: string[];
       scheduledDate: string;
-      owners: string[];
+      owner: string;
       listID : string;
 
       get dbData()

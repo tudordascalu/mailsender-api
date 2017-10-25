@@ -11,10 +11,12 @@ export function requireTokenAuthentication(req: Request, res: Response, next: Fu
   let token = (bearer != null) ? (bearer.split('Bearer ')[1]) : (null);
   if (token)
   {
-    let { err, username } = auth.validate(token);
-    res.locals.username = username;
+    let { err, user } = auth.validate(token);
+    user.token = token;
+    res.locals.user = user;
+    res.locals.client = {};
 
-    if (err || !username)
+    if (err || !user)
     { return HTTPResponse.unauthorized(res, err); }
     else
     { next(); }

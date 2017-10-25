@@ -1,11 +1,11 @@
 
 export class RecipientList
 {
-  static keys = ['id', 'recipients', 'owners'];
+  static keys = ['id', 'recipients', 'owner'];
 
   id: string;
   recipients: string[];
-  owners: string[];
+  owners: string;
 
   get dbData()
   {
