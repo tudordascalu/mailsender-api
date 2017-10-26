@@ -1,8 +1,8 @@
 import { EmailController } from '../controllers/emailController';
 import { RecipientController } from '../controllers/recipientController';
 import { Route } from '../protocols/http';
-import { DevController } from './../controllers/devController';
 import { CampaignController } from './../controllers/campaignController';
+import { DevController } from './../controllers/devController';
 
 const secureAPI = true;
 
@@ -27,7 +27,7 @@ export const routes: Route[] =
   new Route('Get spicific campaign', '/campaigns/:id', 'GET', secureAPI, CampaignController.getSpecificCampaign),
   new Route('Delete spicific campaign', '/campaigns/:id/delete', 'POST', secureAPI, CampaignController.deleteCampaign),
   new Route('Send campaign', '/campaigns/:id/send', 'GET', secureAPI, CampaignController.sendCampaign),
-  new Route('Update scheduled campaign', '/campaigns/:id/update', 'POST', secureAPI, CampaignController.updateCampaign)
+  new Route('Update scheduled campaign', '/campaigns/:id/update', 'POST', secureAPI, CampaignController.updateCampaign),
 
 
 ];

@@ -19,7 +19,7 @@ export class Router
 
     routes.forEach((element) =>
     {
-      const path = `/v${ config.version }` + element.path;
+      const path = `emarketer/v${ config.version }` + element.path;
 
       if (element.secure)
       { router.use(path, authController.requireTokenAuthentication); }
