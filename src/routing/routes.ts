@@ -29,7 +29,6 @@ export const routes: Route[] =
   new Route('Send campaign', '/campaigns/:id/send', 'GET', secureAPI, CampaignController.sendCampaign),
   new Route('Update scheduled campaign', '/campaigns/:id/update', 'POST', secureAPI, CampaignController.updateCampaign),
 
-
 ];
 
 // Routes for development purposes only

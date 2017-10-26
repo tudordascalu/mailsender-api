@@ -19,7 +19,8 @@ export class Router
 
     routes.forEach((element) =>
     {
-      const path = `emarketer/v${ config.version }` + element.path;
+      const path = `/emarketer/v${ config.version }` + element.path;
+      console.log(path);
 
       if (element.secure)
       { router.use(path, authController.requireTokenAuthentication); }
@@ -35,7 +36,8 @@ export class Router
 
     devRoutes.forEach((element) =>
     {
-      const path = `/v${ config.version }` + element.path;
+      const path = `/emarketer/v${ config.version }` + element.path;
+      console.log(path);
 
       switch (element.method)
       { // tslint:disable:semicolon
