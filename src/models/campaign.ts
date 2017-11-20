@@ -1,6 +1,8 @@
+import { RecipientList } from './recipient';
+
 export class Campaign
 {
-    static keys = ['id', 'body', 'subject', 'scheduledDate', 'listID', 'owners'];
+    static keys = ['id', 'body', 'subject', 'scheduledDate', 'listID', 'owners', 'editDate', 'status', 'campaignName'];
 
     id?: string;
     body?: string;
@@ -8,6 +10,9 @@ export class Campaign
     scheduledDate?: string;
     listID?: string;
     owners?: string[];
+    status?: string;
+    editDate?: string;
+    campaignName: string;
 
     get dbData()
     {
@@ -41,13 +46,15 @@ export class Campaign
 
     public updateCampaign(data: Campaign)
     {
-        const keys = ['body', 'subject', 'listID'];
+        const keys = ['body', 'subject', 'listID', 'status', 'campaignName'];
 
         for (let i = 0; i < keys.length; i++)
         {
             const key = keys[i]
             if (data[key] !== undefined) { this[key] = data[key] }
         }
+
+        this.editDate = RecipientList.getEditDate();
     }
 
     public get responseData()
@@ -58,7 +65,10 @@ export class Campaign
           body: this.body,
           subject: this.subject,
           scheduledDate: this.scheduledDate,
-          listID: this.listID
+          listID: this.listID,
+          status: this.status,
+          editDate: this.editDate,
+          campaignName: this.campaignName
         };
         return parameters;
     }
