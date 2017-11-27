@@ -16,17 +16,16 @@ export class CampaignController {
     public static createCampaign(req: Request, res: Response, next: Function) {
         const body = req.body;
         const user = res.locals.user.realtor;
-        const requiredFields = ['body', 'listID', 'subject', 'campaignName'];
+        const requiredFields = ['templateID', 'listID', 'subject', 'campaignName'];
         let missing;
         if (missing = HTTPBody.missingFields(body, requiredFields)) { return HTTPResponse.missing(res, missing, 'body'); }
 
-        if (body.body === null) { return HTTPResponse.error(res, 'body must not be empty', 400); }
+        if (body.templateID === null) { return HTTPResponse.error(res, 'template must be assigned', 400); }
 
         // Check if list exists
         DataStore.local.recipients.find({ id: body.listID, owners: user }, {},
             (err, dbList) => {
                 if (err || dbList.length < 1) return HTTPResponse.error(res, 'error finding a list with the specified id', 404);
-
                 body.id = uuid();
                 body.owners = [user];
                 body.status = "active";

@@ -2,7 +2,7 @@ import { RecipientList } from './recipient';
 
 export class Campaign
 {
-    static keys = ['id', 'body', 'subject', 'scheduledDate', 'listID', 'owners', 'editDate', 'status', 'campaignName'];
+    static keys = ['id','changes', 'templateID', 'body', 'subject', 'scheduledDate', 'listID', 'owners', 'editDate', 'status', 'campaignName'];
 
     id?: string;
     body?: string;
@@ -13,6 +13,8 @@ export class Campaign
     status?: string;
     editDate?: string;
     campaignName: string;
+    templateID: string;
+    changes: {};
 
     get dbData()
     {
@@ -46,7 +48,7 @@ export class Campaign
 
     public updateCampaign(data: Campaign)
     {
-        const keys = ['body', 'subject', 'listID', 'status', 'campaignName'];
+        const keys = ['body', 'subject', 'listID', 'status', 'campaignName', 'changes'];
 
         for (let i = 0; i < keys.length; i++)
         {
@@ -68,7 +70,9 @@ export class Campaign
           listID: this.listID,
           status: this.status,
           editDate: this.editDate,
-          campaignName: this.campaignName
+          campaignName: this.campaignName,
+          templateID: this.templateID,
+          changes: this.changes
         };
         return parameters;
     }
