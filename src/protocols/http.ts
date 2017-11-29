@@ -5,15 +5,16 @@ import { HTTPResponse } from '../output/response';
 
 export class Route
 {
-    name: String; path: String; method: String; secure: Boolean; handler: Function;
+    name: String; path: String; method: String; secure: Boolean; handler: Function; multipartType: string;
 
-    constructor(name: String, path: String, method: String, secure: Boolean, handler: Function)
+    constructor(name: String, path: String, method: String, secure: Boolean, handler: Function, multipartType: string = null)
     {
         this.name = name;
         this.path = path;
         this.method = method;
         this.secure = secure;
         this.handler = handler;
+        this.multipartType = multipartType;
     }
 }
 
@@ -91,12 +92,12 @@ export class HTTPBody
       { return (container[field] === undefined); });
       return (missing.length > 0) ? (missing) : (null);
   }
-  
+
   public static hasAnyRequiredFields(container: {}, requiredFields: string[]): boolean
   {
-    requiredFields.filter( (field) =>{
-      if(container[field]) return true;
-    })
+    requiredFields.filter( (field) => {
+      if (container[field]) return true;
+    });
     return false;
   }
 
