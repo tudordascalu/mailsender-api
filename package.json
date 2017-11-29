@@ -33,6 +33,7 @@
     "express": "^4.15.3",
     "express-winston": "^2.4.0",
     "fbgraph": "^1.4.1",
+    "file-system": "^2.2.2",
     "jsonwebtoken": "^7.4.1",
     "moment": "^2.18.1",
     "moment-timezone": "^0.5.13",

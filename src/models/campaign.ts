@@ -8,6 +8,7 @@ export class Campaign
     scheduledDate?: string;
     listID?: string;
     owners?: string[];
+    images = [];
 
     get dbData()
     {
@@ -20,8 +21,8 @@ export class Campaign
     {
         for (let i = 0; i < Campaign.keys.length; i++)
         {
-            const key = Campaign.keys[i]
-            if (data[key] !== undefined) { this[key] = data[key] }
+            const key = Campaign.keys[i];
+            if (data[key] !== undefined) { this[key] = data[key]; }
         }
     }
 
@@ -45,8 +46,8 @@ export class Campaign
 
         for (let i = 0; i < keys.length; i++)
         {
-            const key = keys[i]
-            if (data[key] !== undefined) { this[key] = data[key] }
+            const key = keys[i];
+            if (data[key] !== undefined) { this[key] = data[key]; }
         }
     }
 
@@ -58,7 +59,7 @@ export class Campaign
           body: this.body,
           subject: this.subject,
           scheduledDate: this.scheduledDate,
-          listID: this.listID
+          listID: this.listID,
         };
         return parameters;
     }
