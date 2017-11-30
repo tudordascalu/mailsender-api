@@ -32,8 +32,8 @@ export const routes: Route[] =
   new Route('Schedule campaign', '/campaigns/:id/send', 'GET', secureAPI, CampaignController.send),
   new Route('Update scheduled campaign', '/campaigns/:id/update', 'POST', secureAPI, CampaignController.update),
 
-  new Route('Upload campaign images', '/campaigns/:id/images', 'POST', secureAPI, CampaignController.uploadImages, 'images'),
-  new Route('Delete campaign images', '/campaigns/:id/images/delete', 'POST', secureAPI, CampaignController.deleteImages),
+  // new Route('Upload campaign images', '/campaigns/:id/images', 'POST', secureAPI, CampaignController.uploadImages, 'images'),
+  // new Route('Delete campaign images', '/campaigns/:id/images/delete', 'POST', secureAPI, CampaignController.deleteImages),
 ];
 
 // Routes for development purposes only

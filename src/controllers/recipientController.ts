@@ -16,7 +16,7 @@ export class RecipientController
         const user = res.locals.user.realtor;
 
         let missing;
-        if (missing = HTTPBody.missingFields(body, ['recipients', 'listName']))
+        if (missing = HTTPBody.missingFields(body, ['recipients']))
         { return HTTPResponse.missing(res, missing, 'body'); }
 
         if (body.recipients.length === 0)
@@ -24,7 +24,12 @@ export class RecipientController
 
         body.id = uuid();
         body.owners = [ user ];
-        body.editDate = RecipientList.getEditDate();
+        try {
+            body.recipients = JSON.parse(body.recipients);
+        } catch(err) {
+            return HTTPResponse.error(res, 'recipients must be a string array', 400);
+        }
+
         const list = RecipientList.fromRequest(body);
         DataStore.local.recipients.addOrUpdate({ id: list.id }, list, {},
             (err, dbData) =>
@@ -90,7 +95,7 @@ export class RecipientController
             },
         );
     }
-/*
+
     public static updateList(req: Request, res: Response, next: Function)
     {
         const body = req.body;
@@ -133,41 +138,5 @@ export class RecipientController
             },
         );
     }
-*/
-    public static updateList(req: Request, res: Response, next: Function)
-    {
-        const body = req.body;
-        const user = res.locals.user.realtor;
-        const recipients = body.recipients;
-        const status = body.status;
-        // Check if body is empty
-        if (Object.getOwnPropertyNames(body).length === 0)
-        { return HTTPResponse.error(res, 'body is empty', 400); }
-        
 
-        DataStore.local.recipients.find({ id: req.params.id, owners: user }, {},
-            (err, dbData) =>
-            {
-                if (err || dbData.length === 0) { return HTTPResponse.error(res, 'recipients lists does not exist or you cannot access it', 400); }
-
-                let list = new RecipientList(dbData[0]);
-
-                
-                if(recipients){
-                    list.updateRecipients(recipients);
-                }
-                if(status){
-                    list.status = status;
-                }
-
-                DataStore.local.recipients.addOrUpdate({ id: list.id }, list, {},
-                    (err, dbData) =>
-                    {
-                        if (err) { return HTTPResponse.error(res, 'error updating the list in db', 400); }
-                        HTTPResponse.json(res, list);
-                    },
-                );
-            },
-        );
-    }
 }

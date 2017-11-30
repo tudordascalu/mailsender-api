@@ -1,9 +1,7 @@
 import * as AWS from 'aws-sdk';
 import { Request, Response } from 'express';
 import * as fs from 'file-system';
-import * as nodeschedule from 'node-schedule';
 import { config } from '../config/config';
-import { EmailScheduler } from '../handlers/emailScheduler';
 import { HTTPBody, HTTPRequest } from '../protocols/http';
 import { DataStore } from './../datastore/datastore';
 import { Campaign } from './../models/campaign';
@@ -12,6 +10,7 @@ import * as nodeschedule from 'node-schedule';
 import { EmailScheduler } from '../handlers/emailScheduler';
 import { RecipientList } from '../models/recipient';
 import { RecipientController } from './recipientController';
+import { HTTPResponse } from '../output/response';
 
 const s3 = new AWS.S3();
 const bucket = 'zigna-emarketer';
@@ -111,17 +110,6 @@ export class CampaignController
       if (err || dbData.length === 0) { return HTTPResponse.error(res, 'campaign does not exist or you cannot access it', 400); }
 
       const campaign = Campaign.fromDatastore(dbData[0]);
-      if (campaign.recipients && campaign.recipients.length > 0)
-      {
-        const email = new Email(campaign);
-        EmailScheduler.sendEmailBlock(email, (errEmail, dataEmail) =>
-        {
-          if (errEmail) { return HTTPResponse.error(res, errEmail, 400); }
-          return HTTPResponse.success(res);
-        });
-      }
-      else if (campaign.listID)
-      {
         DataStore.local.recipients.find({ id: campaign.listID }, {}, (err, dbData) =>
         {
           if (err || dbData.length === 0) { return HTTPResponse.error(res, 'recipients lists does not exist or you cannot access it', 400); }
@@ -136,7 +124,6 @@ export class CampaignController
             return HTTPResponse.success(res);
           });
         });
-      }
     });
   }
 
@@ -179,96 +166,96 @@ export class CampaignController
     });
   }
 
-  public static uploadImages(req: Request, res: Response, next: Function)
-  {
-    const id = req.params.id;
-    const files = req.files;
-    if (!files || files.length === 0) { return HTTPResponse.error(res, 'No files uploaded', 400); }
+  // public static uploadImages(req: Request, res: Response, next: Function)
+  // {
+  //   const id = req.params.id;
+  //   const files = req.files;
+  //   if (!files || files.length === 0) { return HTTPResponse.error(res, 'No files uploaded', 400); }
 
-    if (!id) { return uploadError(res, 'no campaign specified', req.files); }
+  //   if (!id) { return uploadError(res, 'no campaign specified', req.files); }
 
-    DataStore.local.projects.find({ id: id }, {}, (err, dbData) =>
-    {
-      const project = Campaign.fromDatastore(dbData[0]);
-      if (!project) { return uploadError(res, 'project does not exist', req.files); }
+  //   DataStore.local.projects.find({ id: id }, {}, (err, dbData) =>
+  //   {
+  //     const project = Campaign.fromDatastore(dbData[0]);
+  //     if (!project) { return uploadError(res, 'project does not exist', req.files); }
 
-      const imageURLs = (project.images) ? (project.images) : ([]);
-      for (let i = 0; i < files.length; i++)
-      {
-        const index = i + imageURLs.length;
-        const path = files[i].path;
-        let fileName = `${index}`;
-        while (fileName.length < 3) { fileName = `0${fileName}`; }
-        uploadFile(path, id, fileName, (data, err) =>
-        {
-          imageURLs.push(data.Location);
-          if (i === files.length - 1)
-          {
-            DataStore.local.projects.addOrUpdate({ id: id }, { images: imageURLs }, {}, (err, dbData2) => { });
-            HTTPResponse.json(res, { images: imageURLs });
-          }
-        });
-      }
-    });
-  }
+  //     const imageURLs = (project.images) ? (project.images) : ([]);
+  //     for (let i = 0; i < files.length; i++)
+  //     {
+  //       const index = i + imageURLs.length;
+  //       const path = files[i].path;
+  //       let fileName = `${index}`;
+  //       while (fileName.length < 3) { fileName = `0${fileName}`; }
+  //       uploadFile(path, id, fileName, (data, err) =>
+  //       {
+  //         imageURLs.push(data.Location);
+  //         if (i === files.length - 1)
+  //         {
+  //           DataStore.local.projects.addOrUpdate({ id: id }, { images: imageURLs }, {}, (err, dbData2) => { });
+  //           HTTPResponse.json(res, { images: imageURLs });
+  //         }
+  //       });
+  //     }
+  //   });
+  // }
 
-  public static deleteImages(req: Request, res: Response, next: Function)
-  {
-    const id = req.params.id;
-    const deleteURLs = req.body.delete;
+  // public static deleteImages(req: Request, res: Response, next: Function)
+  // {
+  //   const id = req.params.id;
+  //   const deleteURLs = req.body.delete;
 
-    if (!id) { return HTTPResponse.error(res, 'no campaign specified', 400); }
+  //   if (!id) { return HTTPResponse.error(res, 'no campaign specified', 400); }
 
-    DataStore.local.projects.find({ id: id }, {}, (err, dbData) =>
-    {
-      if (dbData.length === 0) { return HTTPResponse.error(res, 'project does not exist', 400); }
-      const project = Campaign.fromDatastore(dbData[0]);
-      const imageURLs = (project.images) ? (project.images) : ([]);
-      const params = { Bucket: bucket, Delete: { Objects: [], Quiet: false } };
+  //   DataStore.local.projects.find({ id: id }, {}, (err, dbData) =>
+  //   {
+  //     if (dbData.length === 0) { return HTTPResponse.error(res, 'project does not exist', 400); }
+  //     const project = Campaign.fromDatastore(dbData[0]);
+  //     const imageURLs = (project.images) ? (project.images) : ([]);
+  //     const params = { Bucket: bucket, Delete: { Objects: [], Quiet: false } };
 
-      for (let i = 0; i < deleteURLs.length; i++)
-      {
-        const url = deleteURLs[i];
-        const index = imageURLs.indexOf(url);
-        if (index >= 0) { imageURLs.splice(index, 1); }
+  //     for (let i = 0; i < deleteURLs.length; i++)
+  //     {
+  //       const url = deleteURLs[i];
+  //       const index = imageURLs.indexOf(url);
+  //       if (index >= 0) { imageURLs.splice(index, 1); }
 
-        const fileName = url.split(`${bucket}`)[1];
-        if (fileName) { params.Delete.Objects.push({ Key: fileName }); }
-      }
+  //       const fileName = url.split(`${bucket}`)[1];
+  //       if (fileName) { params.Delete.Objects.push({ Key: fileName }); }
+  //     }
 
-      s3.deleteObjects(params, (err2, data2) =>
-      { DataStore.local.projects.addOrUpdate({ id: id }, { images: imageURLs }, {}, (err, dbData2) => { }); });
-      HTTPResponse.json(res, { images: imageURLs });
-    });
-  }
+  //     s3.deleteObjects(params, (err2, data2) =>
+  //     { DataStore.local.projects.addOrUpdate({ id: id }, { images: imageURLs }, {}, (err, dbData2) => { }); });
+  //     HTTPResponse.json(res, { images: imageURLs });
+  //   });
+  // }
 }
 
-function uploadFile(path: string, id: string, fileName: string, callback: (data, err) => (void))
-{
-  fs.readFile(path, (err, data) =>
-  {
-    let key = `projects/${id}/${fileName}.png`;
+// function uploadFile(path: string, id: string, fileName: string, callback: (data, err) => (void))
+// {
+//   fs.readFile(path, (err, data) =>
+//   {
+//     let key = `projects/${id}/${fileName}.png`;
 
-    const params =
-      {
-        Bucket: bucket,
-        Body: data,
-        ContentType: 'image/png',
-        Key: key,
-        ACL: 'public-read',
-      };
+//     const params =
+//       {
+//         Bucket: bucket,
+//         Body: data,
+//         ContentType: 'image/png',
+//         Key: key,
+//         ACL: 'public-read',
+//       };
 
-    s3.upload(params, (err, data) =>
-    {
-      callback(data, err);
-      fs.unlink(path, (err, data) => { });
-    });
-  });
-}
+//     s3.upload(params, (err, data) =>
+//     {
+//       callback(data, err);
+//       fs.unlink(path, (err, data) => { });
+//     });
+//   });
+// }
 
-function uploadError(res, error: string, images: any[])
-{
-  for (let i = 0; i < images.length; i++)
-  { fs.unlink(images[i].path, (err, data) => { }); }
-  HTTPResponse.error(res, error, 400);
-}
+// function uploadError(res, error: string, images: any[])
+// {
+//   for (let i = 0; i < images.length; i++)
+//   { fs.unlink(images[i].path, (err, data) => { }); }
+//   HTTPResponse.error(res, error, 400);
+// }

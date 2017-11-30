@@ -4,7 +4,6 @@ import * as uuid from 'uuid/v4';
 export class Campaign
 {
     static keys = ['id','changes', 'templateID', 'body', 'subject', 'scheduledDate', 'listID', 'owners', 'editDate', 'status', 'campaignName'];
-
     id?: string;
     body?: string;
     subject?: string;
@@ -16,6 +15,7 @@ export class Campaign
     campaignName: string;
     templateID: string;
     changes: {};
+    recipients = [];
 
   constructor(data: Campaign)
   {
@@ -55,20 +55,19 @@ export class Campaign
 
   public get publicData()
   {
-        const parameters =
-        {
-          id: this.id,
-          body: this.body,
-          subject: this.subject,
-          scheduledDate: this.scheduledDate,
-          listID: this.listID,
-          status: this.status,
-          editDate: this.editDate,
-          campaignName: this.campaignName,
-          templateID: this.templateID,
-          changes: this.changes
-        };
-        return parameters;
+    const parameters =
+    {
+        id: this.id,
+        body: this.body,
+        subject: this.subject,
+        scheduledDate: this.scheduledDate,
+        listID: this.listID,
+        status: this.status,
+        editDate: this.editDate,
+        campaignName: this.campaignName,
+        templateID: this.templateID,
+        changes: this.changes
+    };
     return parameters;
  }
 }
