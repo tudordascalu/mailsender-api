@@ -1,4 +1,5 @@
 import { RecipientList } from './recipient';
+import * as uuid from 'uuid/v4';
 
 export class Campaign
 {
@@ -16,51 +17,44 @@ export class Campaign
     templateID: string;
     changes: {};
 
-    get dbData()
+  constructor(data: Campaign)
+  {
+    this.update(data, Campaign.keys);
+  }
+
+  // Do setup specific for websites created from a request here
+  public static fromRequest(data: Campaign): Campaign
+  {
+    const site = new Campaign(data);
+    site.id = uuid();
+    return site;
+  }
+
+  // Do setup specific for websites created from a database query here
+  public static fromDatastore(data: any): Campaign
+  {
+    const site: any = new Campaign(data);
+    return site;
+  }
+
+  public update(data: any, keys = ['body', 'subject', 'listID'])
+  {
+    for (let i = 0; i < keys.length; i++)
     {
-        const parameters: any = {};
-        Object.assign(parameters, this);
-        return parameters;
+      const key = keys[i];
+      if (data[key] !== undefined) { this[key] = data[key]; }
     }
+  }
 
-    constructor(data: Campaign)
-    {
-        for (let i = 0; i < Campaign.keys.length; i++)
-        {
-            const key = Campaign.keys[i]
-            if (data[key] !== undefined) { this[key] = data[key] }
-        }
-    }
+  public get dbData()
+  {
+    const parameters: any = {};
+    Object.assign(parameters, this);
+    return parameters;
+  }
 
-    // Do setup specific for websites created from a request here
-    public static fromRequest(data: Campaign): Campaign
-    {
-        const site = new Campaign(data);
-        return site;
-    }
-
-    // Do setup specific for websites created from a database query here
-    public static fromDatastore(data: Campaign): Campaign
-    {
-        const site: any = new Campaign(data);
-        return site;
-    }
-
-    public updateCampaign(data: Campaign)
-    {
-        const keys = ['body', 'subject', 'listID', 'status', 'campaignName', 'changes'];
-
-        for (let i = 0; i < keys.length; i++)
-        {
-            const key = keys[i]
-            if (data[key] !== undefined) { this[key] = data[key] }
-        }
-
-        this.editDate = RecipientList.getEditDate();
-    }
-
-    public get responseData()
-    {
+  public get publicData()
+  {
         const parameters =
         {
           id: this.id,
@@ -75,6 +69,6 @@ export class Campaign
           changes: this.changes
         };
         return parameters;
-    }
-
+    return parameters;
+ }
 }

@@ -7,6 +7,8 @@ import { Logger } from './../output/logger';
 import { HTTPResponse } from './../output/response';
 import { devRoutes, routes } from './routes';
 
+const multer = require('multer');
+
 /**********
  * Router *
  **********/
@@ -20,14 +22,21 @@ export class Router
     routes.forEach((element) =>
     {
       const path = `/emarketer/v${ config.version }` + element.path;
-      console.log(path);
 
+      const upload = multer({ dest: 'images/' });
       if (element.secure)
       { router.use(path, authController.requireTokenAuthentication); }
 
       switch (element.method)
       { // tslint:disable:semicolon
-        case 'POST':    router.post(path, element.handler); break
+        case 'POST':
+        {
+          if (element.multipartType)
+          { router.post(path, upload.array(element.multipartType, 100), element.handler); }
+          else
+          { router.post(path, element.handler); }
+          break;
+        }
         case 'PUT':     router.put(path, element.handler); break
         case 'DELETE':  router.delete(path, element.handler); break
         default:        router.get(path, element.handler); break
