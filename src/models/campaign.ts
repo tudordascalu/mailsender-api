@@ -19,7 +19,7 @@ export class Campaign
 
   constructor(data: Campaign)
   {
-    this.update(data, Campaign.keys);
+    this.update(data);
   }
 
   // Do setup specific for websites created from a request here
@@ -37,11 +37,11 @@ export class Campaign
     return site;
   }
 
-  public update(data: any, keys = ['body', 'subject', 'listID'])
+  public update(data: any)
   {
-    for (let i = 0; i < keys.length; i++)
+    for (let i = 0; i < Campaign.keys.length; i++)
     {
-      const key = keys[i];
+      const key = Campaign.keys[i];
       if (data[key] !== undefined) { this[key] = data[key]; }
     }
   }
