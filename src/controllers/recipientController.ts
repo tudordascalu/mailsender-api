@@ -24,11 +24,6 @@ export class RecipientController
 
         body.id = uuid();
         body.owners = [ user ];
-        try {
-            body.recipients = JSON.parse(body.recipients);
-        } catch(err) {
-            return HTTPResponse.error(res, 'recipients must be a string array', 400);
-        }
 
         const list = RecipientList.fromRequest(body);
         DataStore.local.recipients.addOrUpdate({ id: list.id }, list, {},

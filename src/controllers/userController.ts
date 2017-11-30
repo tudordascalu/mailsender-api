@@ -19,12 +19,18 @@ export class UserController
 {
   public static get(req: Request, res: Response, next: Function)
   {
-    const userID = res.locals.user.realtorID;
+    const userID = res.locals.user.realtor;
+    console.log(res.locals.user);
     if (!userID) { return HTTPResponse.error(res, 'invalid user', 400); }
 
     DataStore.local.users.find({ id: userID }, {}, (err, dbData) =>
     {
-      if (err || dbData.length === 0) { return HTTPResponse.error(res, 'error querying datastore', 500); }
+      if (err || dbData.length === 0) {
+        const user =  { id: userID, images: []}
+        return DataStore.local.users.addOrUpdate({ id: userID }, user, {}, (err2, dbData2) => {
+          HTTPResponse.json(res, user);
+        });
+      }
       const user = User.fromDatastore(dbData[0]);
       HTTPResponse.json(res, user.publicData);
     });
@@ -32,7 +38,7 @@ export class UserController
 
   public static uploadImages(req: Request, res: Response, next: Function)
   {
-    const userID = res.locals.user.realtorID;
+    const userID = res.locals.user.realtor;
     const files = req.files;
     if (!files || files.length === 0) { return HTTPResponse.error(res, 'No files uploaded', 400); }
 
@@ -65,7 +71,7 @@ export class UserController
 
   public static deleteImages(req: Request, res: Response, next: Function)
   {
-    const userID = res.locals.user.realtorID;
+    const userID = res.locals.user.realtor;
     const deleteURLs = req.body.delete;
 
     if (!userID) { return HTTPResponse.error(res, 'invalid user', 400); }
