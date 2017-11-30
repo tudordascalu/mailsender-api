@@ -12,11 +12,11 @@ const publicKey = fs.readFileSync('keys/public.pem');
 export function validate(token: any): { err: any, user: any }
 {
   let options =
-  {
-    algorithms: [alg],
-    issuer: 'http://zigna.api.v3/',
-    // audience: "",
-  };
+    {
+      algorithms: [alg],
+      issuer: 'http://zigna.api.v3/',
+      // audience: "",
+    };
 
   let decoded;
 
@@ -29,11 +29,11 @@ export function validate(token: any): { err: any, user: any }
   { return { err: 'Invalid token', user: null }; }
 
   const user =
-  {
-    realtor: decoded.realtorID,
-    email: decoded.email
-  };
-  return {err: null, user: user};
+    {
+      realtor: decoded.realtorID,
+      email: decoded.email,
+    };
+  return { err: null, user: user };
 }
 
 // export function issue()

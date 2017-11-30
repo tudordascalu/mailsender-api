@@ -36,7 +36,7 @@ function initializeApp()
   configureParsers(app);
   Router.configure(app);
 
-  Logger.write(Logger.levels.info, `Started server with environment: ${ config.env }`);
+  Logger.write(Logger.levels.info, `Started server with environment: ${config.env}`);
   module.exports = app;
 }
 
@@ -47,22 +47,28 @@ function scheduleTasks()
   const scheduledTime = new Date((new Date()).getTime() + delay * 1000);
 
   schedule.scheduleJob(scheduledTime, () =>
-    { ComplaintHandler.handleComplaints(); });
+  { ComplaintHandler.handleComplaints(); });
 }
 
 function scheduleEmailSending()
 {
-  DataStore.local.schedule.find({}, {}, (err, data) =>{
-    if(err){
-      console.log("There are no scheduled emails");
+  DataStore.local.schedule.find({}, {}, (err, data) =>
+  {
+    if (err)
+    {
+      console.log('There are no scheduled emails');
     }
     const scheduledEmails = data;
-    for(let i = 0; i < scheduledEmails.length; i++){
-      if(Date.parse(scheduledEmails[i].scheduledDate) > Date.now()){
-        EmailScheduler.scheduleCampaign(scheduledEmails[i], (err, res) => {
-          if(err) console.log(err);
-          else{
-            console.log("email scheduled");
+    for (let i = 0; i < scheduledEmails.length; i++)
+    {
+      if (Date.parse(scheduledEmails[i].scheduledDate) > Date.now())
+      {
+        EmailScheduler.scheduleCampaign(scheduledEmails[i], (err, res) =>
+        {
+          if (err) console.log(err);
+          else
+          {
+            console.log('email scheduled');
           }
         });
       }
