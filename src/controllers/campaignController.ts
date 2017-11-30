@@ -44,7 +44,7 @@ export class CampaignController
   {
     const body = req.body;
     const user = res.locals.user.realtor;
-    const requiredFields = ['body', 'listID', 'subject', 'body'];
+    const requiredFields = ['templateID', 'listID', 'subject'];
 
     let missing;
     if (missing = HTTPBody.missingFields(body, requiredFields))
