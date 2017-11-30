@@ -2,7 +2,6 @@ import * as AWS from 'aws-sdk';
 import { Request, Response } from 'express';
 import * as fs from 'file-system';
 import * as nodeschedule from 'node-schedule';
-import * as uuid from 'uuid/v4';
 import { config } from '../config/config';
 import { EmailScheduler } from '../handlers/emailScheduler';
 import { HTTPBody, HTTPRequest } from '../protocols/http';
@@ -17,167 +16,129 @@ const bucket = 'zigna-emarketer';
 
 export class CampaignController
 {
-  public static createCampaign(req: Request, res: Response, next: Function)
+  public static get(req: Request, res: Response, next: Function)
+  {
+    const id = req.params.id;
+    const userID = res.locals.user.realtor;
+
+    const query: any = { owners: userID };
+    if (id) { query.id = id; }
+
+    DataStore.local.campaigns.find(query, {}, (err, dbData) =>
+    {
+      if (err || dbData.length === 0) { return HTTPResponse.json(res, []); }
+
+      let campaigns = [];
+      for (let i = 0; i < dbData.length; i++)
+      {
+        const campaign = Campaign.fromDatastore(dbData[i]);
+        campaigns.push(campaign.publicData);
+      }
+
+      HTTPResponse.json(res, campaigns);
+    });
+  }
+
+  public static create(req: Request, res: Response, next: Function)
   {
     const body = req.body;
     const user = res.locals.user.realtor;
-    const requiredFields = ['body', 'listID', 'subject'];
+    const requiredFields = ['body', 'listID', 'subject', 'body'];
 
     let missing;
     if (missing = HTTPBody.missingFields(body, requiredFields))
     { return HTTPResponse.missing(res, missing, 'body'); }
 
-    if (body.body === null)
-    { return HTTPResponse.error(res, 'body must not be empty', 400); }
+    if (body.scheduledDate)
+    {
+      if (!Date.parse(body.scheduledDate) || Date.parse(body.scheduledDate) < Date.now())
+      { return HTTPResponse.error(res, 'scheduled date is invalid', 400); }
+    }
 
-    // Check if list exists
-    DataStore.local.recipients.find({ id: body.listID }, {},
-      (err, dbList) =>
+    DataStore.local.recipients.find({ id: body.listID }, {}, (err, dbData) =>
+    {
+      if (err || dbData.length === 0) return HTTPResponse.error(res, 'the specified list does not exist', 404);
+
+      const campaign = Campaign.fromRequest(body);
+      campaign.owners = [user];
+
+      DataStore.local.campaigns.addOrUpdate({ id: campaign.id }, campaign.dbData, {}, (err, dbData2) =>
       {
-        if (err || dbList.length < 1) return HTTPResponse.error(res, 'error finding a list with the specified id', 404);
+        if (err) return HTTPResponse.error(res, 'error creating the campaign', 500);
 
-        body.id = uuid();
-        body.owners = [user];
-        const campaign = Campaign.fromRequest(body);
-
-        // Check for the scheduledDate
-        let scheduleFlag = false;
         if (campaign.scheduledDate)
         {
-          if (!Date.parse(campaign.scheduledDate) || Date.parse(campaign.scheduledDate) < Date.now())
-          { return HTTPResponse.error(res, 'scheduled date must be valid', 422); }
-
-          scheduleFlag = true;
-        }
-
-        // Create campaign
-        DataStore.local.campaigns.addOrUpdate({ id: campaign.id }, campaign.dbData, {},
-          (err, dbData) =>
+          EmailScheduler.scheduleCampaign(campaign, (errSchedule, dataSchedule) =>
           {
-            if (err) return HTTPResponse.error(res, 'error creating the campaign', 500);
-
-            if (scheduleFlag)
-            {
-              EmailScheduler.scheduleCampaign(campaign,
-                (errSchedule, dataSchedule) =>
-                {
-                  if (errSchedule) return HTTPResponse.error(res, 'error scheduling the campaign in db', 400);
-                  return HTTPResponse.json(res, { message: 'Campaign created and scheduled for sending', campaignID: dbData.id });
-                },
-              );
-            }
-            else { return HTTPResponse.json(res, { message: 'Campaign created', campaignID: dbData.id }); }
-          },
-        );
-      },
-    );
-  }
-
-  public static getAllCampaigns(req: Request, res: Response, next: Function)
-  {
-    const user = res.locals.user.realtor;
-
-    DataStore.local.campaigns.find({ owners: user }, {},
-      (err, dbData) =>
-      {
-        if (err || dbData.length === 0) { return HTTPResponse.json(res, []); }
-
-        let userCampaigns = [];
-        for (let i = 0; i < dbData.length; i++)
-        {
-          const campaign = Campaign.fromDatastore(dbData[i]);
-          userCampaigns.push(campaign.responseData);
+            if (errSchedule) return HTTPResponse.error(res, 'error scheduling the campaign in db', 400);
+            return HTTPResponse.json(res, { message: 'Campaign created and scheduled for sending', campaignID: dbData.id });
+          });
         }
-
-        HTTPResponse.json(res, userCampaigns);
-      },
-    );
+        else { return HTTPResponse.json(res, { message: 'Campaign created', campaignID: dbData.id }); }
+      });
+    });
   }
 
-  public static getSpecificCampaign(req: Request, res: Response, next: Function)
+  public static delete(req: Request, res: Response, next: Function)
   {
     const user = res.locals.user.realtor;
 
-    DataStore.local.campaigns.find({ id: req.params.id, owners: user }, {},
-      (err, dbData) =>
-      {
-        if (err || dbData.length === 0) { return HTTPResponse.error(res, 'campaign does not exist or you cannot access it', 404); }
+    DataStore.local.campaigns.find({ id: req.params.id, owners: user }, {}, (err, dbData) =>
+    {
+      if (err || dbData.length === 0)
+      { return HTTPResponse.error(res, 'campaign does not exist or you cannot access it', 400); }
 
-        const campaign = Campaign.fromDatastore(dbData[0]);
-        HTTPResponse.json(res, campaign.responseData);
-      },
-    );
+      const campaign = dbData[0];
+      DataStore.local.campaigns.remove({ id: campaign.id }, {}, (err, dbData) =>
+      {
+        if (err) { return HTTPResponse.error(res, 'error deleting campaign', 500); }
+        HTTPResponse.success(res);
+      });
+    });
   }
 
-  public static deleteCampaign(req: Request, res: Response, next: Function)
+  public static send(req: Request, res: Response, next: Function)
   {
-    const user = res.locals.user.realtor;
+    const userID = res.locals.user.realtor;
+    const id = req.params.id;
+    if (!userID) { return HTTPResponse.error(res, 'invalid user', 400); }
+    if (!id) { return HTTPResponse.error(res, 'no campaign specified', 400); }
 
-    DataStore.local.campaigns.find({ id: req.params.id, owners: user }, {},
-      (err, dbData) =>
+    DataStore.local.campaigns.find({ id: id, owners: userID }, {}, (err, dbData) =>
+    {
+      if (err || dbData.length === 0) { return HTTPResponse.error(res, 'campaign does not exist or you cannot access it', 400); }
+
+      const campaign = Campaign.fromDatastore(dbData[0]);
+      if (campaign.recipients && campaign.recipients.length > 0)
       {
-        if (err || dbData.length === 0)
-        { return HTTPResponse.error(res, 'campaign do not exist or you cannot access it', 400); }
-
-        const campaign = dbData[0];
-        DataStore.local.campaigns.remove({ id: campaign.id }, {},
-          (err, dbData) =>
-          {
-            if (err) { return HTTPResponse.error(res, 'campaign does not exist or you cannot access it', 400); }
-            HTTPResponse.success(res);
-          },
-        );
-      },
-    );
-  }
-
-  public static sendCampaign(req: Request, res: Response, next: Function)
-  {
-    const user = res.locals.user.realtor;
-
-    DataStore.local.campaigns.find({ id: req.params.id, owners: user }, {},
-      (err, dbData) =>
-      {
-        if (err || dbData.length === 0) { return HTTPResponse.error(res, 'campaign does not exist or you cannot access it', 400); }
-
-        const body = dbData[0];
-
-        if (body['recipients'])
+        const email = new Email(campaign);
+        EmailScheduler.sendEmailBlock(email, (errEmail, dataEmail) =>
         {
-          if (body.recipients.length === 0)
-          { return HTTPResponse.error(res, 'recipients field must not be empty', 400); }
+          if (errEmail) { return HTTPResponse.error(res, errEmail, 400); }
+          return HTTPResponse.success(res);
+        });
+      }
+      else if (campaign.listID)
+      {
+        DataStore.local.recipients.find({ id: campaign.listID }, {}, (err, dbData) =>
+        {
+          if (err || dbData.length === 0) { return HTTPResponse.error(res, 'recipients lists does not exist or you cannot access it', 400); }
 
-          const email = new Email(body);
+          const list = dbData[0].recipients;
+          campaign.recipients = list;
+          const email = new Email(campaign);
+
           EmailScheduler.sendEmailBlock(email, (errEmail, dataEmail) =>
           {
             if (errEmail) { return HTTPResponse.error(res, errEmail, 400); }
             return HTTPResponse.success(res);
           });
-        }
-        else if (body['listID'])
-        {
-          DataStore.local.recipients.find({ id: body.listID }, {},
-            (err, dbData) =>
-            {
-              if (err || dbData.length === 0) { return HTTPResponse.error(res, 'recipients lists does not exist or you cannot access it', 400); }
-
-              const list = dbData[0].recipients;
-              body.recipients = list;
-              const email = new Email(body);
-
-              EmailScheduler.sendEmailBlock(email, (errEmail, dataEmail) =>
-              {
-                if (errEmail) { return HTTPResponse.error(res, errEmail, 400); }
-                return HTTPResponse.success(res);
-              });
-            },
-          );
-        }
-      },
-    );
+        });
+      }
+    });
   }
 
-  public static async updateCampaign(req: Request, res: Response, next: Function)
+  public static /*async*/ update(req: Request, res: Response, next: Function)
   {
     const user = res.locals.user.realtor;
     const body = req.body;
@@ -187,38 +148,36 @@ export class CampaignController
     { return HTTPResponse.error(res, 'body is empty', 400); }
 
     // Check if campaign exists
-    DataStore.local.campaigns.find({ id: req.params.id, owners: user }, {},
-      async (err, dbData) =>
+    DataStore.local.campaigns.find({ id: req.params.id, owners: user }, {}, /*async*/(err, dbData) =>
+    {
+      if (err || dbData.length === 0) { return HTTPResponse.error(res, 'campaign does not exist or you cannot access it', 404); }
+
+      let campaign = new Campaign(dbData[0]);
+      campaign.update(body);
+
+      // Check if a new scheduledDate is send
+      if (body.scheduledDate)
       {
-        if (err || dbData.length === 0) { return HTTPResponse.error(res, 'campaign does not exist or you cannot access it', 404); }
-
-        let campaign = new Campaign(dbData[0]);
-        campaign.updateCampaign(body);
-
-        // Check if a new scheduledDate is send
-        if (body.scheduledDate)
-        {
-          if (!Date.parse(body.scheduledDate) || Date.parse(body.scheduledDate) < Date.now())
-          { return HTTPResponse.error(res, 'scheduled date must be valid', 422); }
+        if (!Date.parse(body.scheduledDate) || Date.parse(body.scheduledDate) < Date.now())
+        { return HTTPResponse.error(res, 'scheduled date must be valid', 400); }
 
           // Cancel the previous schedule
-          await EmailScheduler.cancelCampaignSending(campaign);
-          // Assign the new schedule
-          campaign['scheduledDate'] = body.scheduledDate;
-          await EmailScheduler.rescheduleCampaign(campaign);
-        }
+          /*await*/ EmailScheduler.cancelCampaignSending(campaign);
+        // Assign the new schedule
+        campaign['scheduledDate'] = body.scheduledDate;
+          /*await*/ EmailScheduler.rescheduleCampaign(campaign);
+      }
 
-        // Update campaign inside our db
-        EmailScheduler.updateCampaignDB(campaign, (errUpdate, resUpdate) =>
-        {
-          if (errUpdate) { return HTTPResponse.error(res, 'campaign could not be updated', 500); }
-          return HTTPResponse.json(res, campaign.responseData);
-        });
-      },
-    );
+      // Update campaign inside our db
+      EmailScheduler.updateCampaignDB(campaign, (errUpdate, resUpdate) =>
+      {
+        if (errUpdate) { return HTTPResponse.error(res, 'campaign could not be updated', 500); }
+        return HTTPResponse.json(res, campaign.publicData);
+      });
+    });
   }
 
-  public static uploadCampaignImages(req: Request, res: Response, next: Function)
+  public static uploadImages(req: Request, res: Response, next: Function)
   {
     const id = req.params.id;
     const files = req.files;
@@ -234,8 +193,9 @@ export class CampaignController
       const imageURLs = (project.images) ? (project.images) : ([]);
       for (let i = 0; i < files.length; i++)
       {
+        const index = i + imageURLs.length;
         const path = files[i].path;
-        let fileName = `${i}`;
+        let fileName = `${index}`;
         while (fileName.length < 3) { fileName = `0${fileName}`; }
         uploadFile(path, id, fileName, (data, err) =>
         {
@@ -250,7 +210,7 @@ export class CampaignController
     });
   }
 
-  public static deleteCampaignImages(req: Request, res: Response, next: Function)
+  public static deleteImages(req: Request, res: Response, next: Function)
   {
     const id = req.params.id;
     const deleteURLs = req.body.delete;

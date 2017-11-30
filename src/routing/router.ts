@@ -22,7 +22,6 @@ export class Router
     routes.forEach((element) =>
     {
       const path = `/emarketer/v${ config.version }` + element.path;
-      console.log(path);
 
       const upload = multer({ dest: 'images/' });
       if (element.secure)
