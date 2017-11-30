@@ -21,7 +21,6 @@ export const routes: Route[] =
   new Route('Delete recipient list', '/lists/:id/delete', 'POST', secureAPI, RecipientController.deleteList),
   new Route('Update recipient list', '/lists/:id/update', 'POST', secureAPI, RecipientController.updateList),
 
-
   new Route('Create campaign', '/campaigns', 'POST', secureAPI, CampaignController.createCampaign),
   new Route('Get all campaigns', '/campaigns', 'GET', secureAPI, CampaignController.getAllCampaigns),
   new Route('Get spicific campaign', '/campaigns/:id', 'GET', secureAPI, CampaignController.getSpecificCampaign),
@@ -29,6 +28,8 @@ export const routes: Route[] =
   new Route('Send campaign', '/campaigns/:id/send', 'GET', secureAPI, CampaignController.sendCampaign),
   new Route('Update scheduled campaign', '/campaigns/:id/update', 'POST', secureAPI, CampaignController.updateCampaign),
 
+  new Route('Upload campaign images', '/campaigns/:id/images', 'POST', secureAPI, CampaignController.uploadCampaignImages),
+  new Route('Delete campaign images', '/campaigns/:id/images/delete', 'POST', secureAPI, CampaignController.deleteCampaignImages),
 ];
 
 // Routes for development purposes only
