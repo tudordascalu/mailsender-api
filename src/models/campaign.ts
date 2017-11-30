@@ -1,5 +1,5 @@
-import { RecipientList } from './recipient';
 import * as uuid from 'uuid/v4';
+import { RecipientList } from './recipient';
 
 export class Campaign
 {
@@ -66,7 +66,7 @@ export class Campaign
         editDate: this.editDate,
         campaignName: this.campaignName,
         templateID: this.templateID,
-        changes: this.changes
+        changes: this.changes,
     };
     return parameters;
  }
