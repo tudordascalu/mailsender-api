@@ -1,17 +1,21 @@
+import { RecipientList } from './recipient';
 import * as uuid from 'uuid/v4';
 
 export class Campaign
 {
-  static keys = ['id', 'body', 'subject', 'scheduledDate', 'listID', 'owners'];
+    static keys = ['id','changes', 'templateID', 'body', 'subject', 'scheduledDate', 'listID', 'owners', 'editDate', 'status', 'campaignName'];
 
-  id?: string;
-  body?: string;
-  subject?: string;
-  scheduledDate?: string;
-  listID?: string;
-  owners?: string[];
-  images = [];
-  recipients = [];
+    id?: string;
+    body?: string;
+    subject?: string;
+    scheduledDate?: string;
+    listID?: string;
+    owners?: string[];
+    status?: string;
+    editDate?: string;
+    campaignName: string;
+    templateID: string;
+    changes: {};
 
   constructor(data: Campaign)
   {
@@ -51,15 +55,20 @@ export class Campaign
 
   public get publicData()
   {
-    const parameters =
-      {
-        id: this.id,
-        body: this.body,
-        subject: this.subject,
-        scheduledDate: this.scheduledDate,
-        listID: this.listID,
-      };
+        const parameters =
+        {
+          id: this.id,
+          body: this.body,
+          subject: this.subject,
+          scheduledDate: this.scheduledDate,
+          listID: this.listID,
+          status: this.status,
+          editDate: this.editDate,
+          campaignName: this.campaignName,
+          templateID: this.templateID,
+          changes: this.changes
+        };
+        return parameters;
     return parameters;
-  }
-
+ }
 }
