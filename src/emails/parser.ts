@@ -2,7 +2,7 @@
 // import * as _pages from './pages.json';
 // import * as _sections from './sections.json';
 
-const template = require('../../src/emails/template.json');
+const templates = require('./template.json');
 const projectData: any = {};
 let changes: any = {};
 export class CampaignParser
@@ -12,11 +12,14 @@ export class CampaignParser
     changes = project.changes;
     let html = `<html><head><title>TUDOR</title>`;
     html += `</head><body>`;
+    const id = project.templateID;
+    let template = templates[id];
+    if (!template) { template = templates[3]; }
     html += CampaignParser.addElements(html, template);
+
     html += `</body></html>`;
     return html;
   }
-
 
   public static structureToHTML(project: any, pageName: string, editable = false): string
   {
