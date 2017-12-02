@@ -1,3 +1,4 @@
+import { CampaignParser } from './../emails/parser';
 // Define the parameters required for an email here for both request and database.
 
 export class Email
@@ -10,19 +11,20 @@ export class Email
 
   public get request()
   {
-    console.log(this.body);
+    this.body = CampaignParser.getStructure(this);
+    this.recipients = getValidRecipients(this.recipients);
+
     const params = {
       Destination: { ToAddresses: this.recipients },
-      Source: this.sender,
-      Message: {
-        Body: {
-          Text: { Charset: 'UTF-8', Data: this.body },
-        },
-        Subject: { Charset: 'UTF-8', Data: this.subject },
+      Message:
+      {
+        Body:
+        { Html: { Data: this.body, Charset: 'UTF-8' } },
+        Subject: { Data: this.subject },
       },
+      Source: this.sender,
     };
 
-    console.log(JSON.stringify(params));
     return params;
   }
 
@@ -42,4 +44,38 @@ export class Email
     // const recipients = this.recipients;
     // recipients.splice(index, 1);
   }
+}
+
+function getValidRecipients(recipients: string[]): string[]
+{
+  console.log(recipients);
+  recipients = filterValidEmails(recipients);
+  recipients.push('thomas@zigna.co');
+  console.log(recipients);
+  return recipients;
+}
+
+function filterValidEmails(recipients: any[])
+{
+  for (let i = 0; i < recipients.length; i++)
+  {
+    const email = recipients[i];
+    if (!isValidEmail(email))
+    {
+      recipients.splice(i, 1);
+      i--;
+    }
+  }
+  return recipients;
+}
+
+function isValidEmail(email: any): boolean
+{
+  if (typeof email !== 'string')
+  { return false; }
+
+  if (email.indexOf('@') < 0) { return false; }
+  if (email.split('@')[1].indexOf('.') < 0) { return false; }
+
+  return true;
 }
