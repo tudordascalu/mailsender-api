@@ -12,9 +12,13 @@ import { Email } from './../models/email';
 import { Schedule } from './../models/schedule';
 import { HTTPResponse } from './../output/response';
 
+// const s3 = new AWS.S3({
+//   accessKeyId: 'AKIAIYYGOQUV7HLXU23A',
+//   secretAccessKey: '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'
+// });
 const s3 = new AWS.S3({
-  accessKeyId: 'AKIAIYYGOQUV7HLXU23A',
-  secretAccessKey: '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'
+  accessKeyId: 'AKIAJ2LSRESR3JZ7HPPA',
+  secretAccessKey: '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'
 });
 // const bucket = 'zigna-emarketer';
 const bucket = 'email-marketer-tudor';

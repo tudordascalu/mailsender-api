@@ -12,8 +12,8 @@ import { Logger } from '../output/logger';
 //     region: 'us-east-1',
 // });
 aws.config.update({
-    accessKeyId: 'AKIAIYYGOQUV7HLXU23A',
-    secretAccessKey: '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',
+    accessKeyId: 'AKIAJ2LSRESR3JZ7HPPA',
+    secretAccessKey: '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',
     region: 'eu-west-1',
 });
 const ses = new aws.SES();
