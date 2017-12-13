@@ -11,7 +11,7 @@ import { HTTPResponse } from './../output/response';
 import { RecipientController } from './recipientController';
 
 // const aws = require('aws-sdk');
-aws.config.update({region: 'us-east-1'});
+// aws.config.update({region: 'us-east-1'});
 const ses = new aws.SES();
 
 export class EmailController

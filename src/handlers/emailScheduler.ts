@@ -14,7 +14,7 @@ import { Logger } from '../output/logger';
 aws.config.update({
     accessKeyId: 'AKIAIYYGOQUV7HLXU23A',
     secretAccessKey: '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',
-    region: 'eu',
+    region: 'eu-west-1',
 });
 const ses = new aws.SES();
 export class EmailScheduler
@@ -41,7 +41,7 @@ export class EmailScheduler
 
             if (email.recipients.length === 0)
             { return completion('all recipients are blacklisted', null); }
-
+            console.log(email.request);
             ses.sendEmail(email.request, (err, data) =>
             {
                 if (err)

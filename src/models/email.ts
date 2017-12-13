@@ -13,6 +13,7 @@ export class Email
   public get request()
   {
     this.body = CampaignParser.getStructure(this);
+    console.log(this.body);
     this.recipients = getValidRecipients(this.recipients);
 
     const params = {
@@ -51,7 +52,7 @@ function getValidRecipients(recipients: string[]): string[]
 {
   console.log(recipients);
   recipients = filterValidEmails(recipients);
-  recipients.push('thomas@zigna.co');
+  // recipients.push('thomas@zigna.co');
   console.log(recipients);
   return recipients;
 }
