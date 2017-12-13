@@ -5,6 +5,7 @@ import * as randomString from "randomstring"
 // import * as http from "http"
 
 let authServer = "https://api.zigna.dk/v3",
+    // apiServer = "http://localhost:3000/emarketer/v1"
     apiServer = "http://localhost:3000/v1"
 let err, res, body, accessToken
 

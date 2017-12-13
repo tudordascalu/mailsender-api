@@ -4,6 +4,7 @@
     "timezone": "Europe/Copenhagen",
     "fbTimezoneID": 48,
     "version": 1,
-    "dbURL": "mongodb://zignaEMarketer:8PInwg1qHxpFUtOq@zignadb-shard-00-00-0ecif.mongodb.net:27017,zignadb-shard-00-01-0ecif.mongodb.net:27017,zignadb-shard-00-02-0ecif.mongodb.net:27017/mailsender?ssl=true&replicaSet=zignaDB-shard-0&authSource=admin",
+    "dbURL": "mongodb://admin:admin@ds133496.mlab.com:33496/mailsender",
     "keychain": "keychain.json"
 }
+

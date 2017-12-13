@@ -20,7 +20,8 @@ export class CampaignController
   public static get(req: Request, res: Response, next: Function)
   {
     const id = req.params.id;
-    const userID = res.locals.user.realtor;
+    // const userID = res.locals.user.realtor;
+    const userID = 'Tudor';
 
     const query: any = { owners: userID };
     if (id) { query.id = id; }
@@ -43,7 +44,7 @@ export class CampaignController
   public static create(req: Request, res: Response, next: Function)
   {
     const body = req.body;
-    const user = res.locals.user.realtor;
+    const user = 'Tudor'
     const requiredFields = ['templateID', 'listID', 'subject'];
 
     let missing;
@@ -100,7 +101,7 @@ export class CampaignController
 
   public static send(req: Request, res: Response, next: Function)
   {
-    const userID = res.locals.user.realtor;
+    const userID = 'Tudor';
     const id = req.params.id;
     if (!userID) { return HTTPResponse.error(res, 'invalid user', 400); }
     if (!id) { return HTTPResponse.error(res, 'no campaign specified', 400); }
@@ -112,6 +113,7 @@ export class CampaignController
       const campaign = Campaign.fromDatastore(dbData[0]);
         DataStore.local.recipients.find({ id: campaign.listID }, {}, (err, dbData) =>
         {
+          console.log(dbData);
           if (err || dbData.length === 0) { return HTTPResponse.error(res, 'recipients lists does not exist or you cannot access it', 400); }
 
           const list = dbData[0].recipients;
@@ -129,7 +131,7 @@ export class CampaignController
 
   public static /*async*/ update(req: Request, res: Response, next: Function)
   {
-    const user = res.locals.user.realtor;
+    const user = 'Tudor';
     const body = req.body;
 
     // Check if body is empty

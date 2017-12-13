@@ -6,7 +6,8 @@ export class Email
   id: string;
   body: string;
   subject: string = 'LALALA';
-  sender: string = 'support@zigna.co';
+  // sender: string = 'support@zigna.co';
+  sender = 'tudordascalu1@gmail.com'
   recipients: string[];
 
   public get request()

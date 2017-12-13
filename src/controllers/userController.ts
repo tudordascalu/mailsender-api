@@ -12,15 +12,18 @@ import { Email } from './../models/email';
 import { Schedule } from './../models/schedule';
 import { HTTPResponse } from './../output/response';
 
-const s3 = new AWS.S3();
-const bucket = 'zigna-emarketer';
-
+const s3 = new AWS.S3({
+  accessKeyId: 'AKIAIYYGOQUV7HLXU23A',
+  secretAccessKey: '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'
+});
+// const bucket = 'zigna-emarketer';
+const bucket = 'email-marketer-tudor';
 export class UserController
 {
   public static get(req: Request, res: Response, next: Function)
   {
-    const userID = res.locals.user.realtor;
-    console.log(res.locals.user);
+    const userID = 'Tudor';
+    // console.log(res.locals.user);
     if (!userID) { return HTTPResponse.error(res, 'invalid user', 400); }
 
     DataStore.local.users.find({ id: userID }, {}, (err, dbData) =>
@@ -38,7 +41,7 @@ export class UserController
 
   public static uploadImages(req: Request, res: Response, next: Function)
   {
-    const userID = res.locals.user.realtor;
+    const userID = 'Tudor';
     const files = req.files;
     if (!files || files.length === 0) { return HTTPResponse.error(res, 'No files uploaded', 400); }
 
@@ -58,6 +61,7 @@ export class UserController
         while (fileName.length < 3) { fileName = `0${fileName}`; }
         uploadFile(path, userID, fileName, (data, err) =>
         {
+          console.log(err);
           imageURLs.push(data.Location);
           if (i === files.length - 1)
           {
@@ -71,7 +75,7 @@ export class UserController
 
   public static deleteImages(req: Request, res: Response, next: Function)
   {
-    const userID = res.locals.user.realtor;
+    const userID = 'Tudor';
     const deleteURLs = req.body.delete;
 
     if (!userID) { return HTTPResponse.error(res, 'invalid user', 400); }
@@ -115,7 +119,7 @@ function uploadFile(path: string, id: string, fileName: string, callback: (data,
         Key: key,
         ACL: 'public-read',
       };
-
+      console.log(params);
     s3.upload(params, (err, data) =>
     {
       callback(data, err);

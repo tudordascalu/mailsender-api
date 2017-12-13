@@ -5,7 +5,7 @@ import { Route } from '../protocols/http';
 import { CampaignController } from './../controllers/campaignController';
 import { DevController } from './../controllers/devController';
 
-const secureAPI = true;
+const secureAPI = false;
 
 // Production routes for development purposes only
 export const routes: Route[] =

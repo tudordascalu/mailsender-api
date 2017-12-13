@@ -13,7 +13,7 @@ export class RecipientController
   public static createList(req: Request, res: Response, next: Function)
   {
     const body = req.body;
-    const user = res.locals.user.realtor;
+    const user = 'Tudor';
 
     let missing;
     if (missing = HTTPBody.missingFields(body, ['recipients']))
@@ -37,7 +37,7 @@ export class RecipientController
 
   public static getAllLists(req: Request, res: Response, next: Function)
   {
-    const user = res.locals.user.realtor;
+    const user = 'Tudor';
 
     DataStore.local.recipients.find({ owners: user }, {},
       (err, dbData) =>
@@ -57,7 +57,7 @@ export class RecipientController
 
   public static getSpecificList(req: Request, res: Response, next: Function)
   {
-    const user = res.locals.user.realtor;
+    const user = 'Tudor';
 
     DataStore.local.recipients.find({ id: req.params.id, owners: user }, {},
       (err, dbData) =>
@@ -72,7 +72,7 @@ export class RecipientController
 
   public static deleteList(req: Request, res: Response, next: Function)
   {
-    const user = res.locals.user.realtor;
+    const user = 'Tudor';
 
     DataStore.local.recipients.find({ id: req.params.id, owners: user }, {},
       (err, dbData) =>
@@ -94,7 +94,8 @@ export class RecipientController
   public static updateList(req: Request, res: Response, next: Function)
   {
     const body = req.body;
-    const user = res.locals.user.realtor;
+    // const user = res.locals.user.realtor;
+    const user = 'Tudor';
     const recipients = body.recipients;
 
     if (!recipients || recipients.length === 0) { return HTTPResponse.error(res, 'recipients list is empty', 400); }

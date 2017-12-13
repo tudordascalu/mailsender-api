@@ -13,7 +13,8 @@ export class CampaignParser
     let html = `<html><head><title>TUDOR</title>`;
     html += `</head><body>`;
     const id = project.templateID;
-    let template = templates[id];
+    let template = templates[3];
+    console.log(templates);
     if (!template) { template = templates[3]; }
     html += CampaignParser.addElements(html, template);
 

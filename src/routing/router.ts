@@ -22,7 +22,8 @@ export class Router
     routes.forEach((element) =>
     {
       const path = `/emarketer/v${ config.version }` + element.path;
-
+      // const path = `/v${ config.version }` + element.path;
+      
       const upload = multer({ dest: 'images/' });
       if (element.secure)
       { router.use(path, authController.requireTokenAuthentication); }
@@ -69,6 +70,7 @@ export class Router
       // Returns stacktrace in development
       let msg = (config.env === 'dev') ? (err) : (null);
       Logger.write('error', err);
+      console.log(err);
       HTTPResponse.error(res, msg, 500);
     });
   }

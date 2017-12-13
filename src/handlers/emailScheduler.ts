@@ -6,10 +6,15 @@ import { Email } from '../models/email';
 import { Schedule } from '../models/schedule';
 import { Logger } from '../output/logger';
 
+// aws.config.update({
+//     accessKeyId: 'AKIAI4RQ3KB4IIAKCCKA',
+//     secretAccessKey: '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',
+//     region: 'us-east-1',
+// });
 aws.config.update({
-    accessKeyId: 'AKIAI4RQ3KB4IIAKCCKA',
-    secretAccessKey: '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',
-    region: 'us-east-1',
+    accessKeyId: 'AKIAIYYGOQUV7HLXU23A',
+    secretAccessKey: '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',
+    region: 'eu',
 });
 const ses = new aws.SES();
 export class EmailScheduler
@@ -27,7 +32,7 @@ export class EmailScheduler
         DataStore.local.blacklist.find({ name: 'blacklist' }, {},
             (err, dbData) =>
             {
-            if (dbData.length > 0)
+            if (dbData && dbData.length > 0)
             {
                 const blacklist = dbData[0].emails;
                 for (let i = 0; i < blacklist.length; i++)
