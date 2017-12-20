@@ -35,7 +35,7 @@ export class RecipientList {
         return site;
     }
 
-    public updateRecipients(recipients: string[]) {
+    public updateRecipients(recipients: string[], status=null) {
         //     for (let i = 0; i < data.deleteRecipients.length; i++)
         //     {
         //         const recipient = data.deleteRecipients[i];
@@ -49,6 +49,9 @@ export class RecipientList {
         //         const index = this.recipients.indexOf(recipient);
         //         if (index === -1) { this.recipients.push(recipient); }
         //     }
+        if(status) {
+            this.status = status;
+        }
         this.recipients = recipients;
         this.numberOfEmails = this.recipients.length;
         this.editDate = RecipientList.getEditDate();

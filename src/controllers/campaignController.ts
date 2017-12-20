@@ -145,7 +145,7 @@ export class CampaignController
 
       let campaign = new Campaign(dbData[0]);
       campaign.update(body);
-
+      console.log(body);
       // Check if a new scheduledDate is send
       if (body.scheduledDate)
       {

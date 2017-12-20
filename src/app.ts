@@ -59,6 +59,7 @@ function scheduleEmailSending()
       console.log('There are no scheduled emails');
     }
     const scheduledEmails = data;
+    console.log(data);
     for (let i = 0; i < scheduledEmails.length; i++)
     {
       if (Date.parse(scheduledEmails[i].scheduledDate) > Date.now())

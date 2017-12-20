@@ -97,6 +97,7 @@ export class RecipientController
     // const user = res.locals.user.realtor;
     const user = 'Tudor';
     const recipients = body.recipients;
+    const status = body.status;
 
     if (!recipients || recipients.length === 0) { return HTTPResponse.error(res, 'recipients list is empty', 400); }
 
@@ -106,8 +107,8 @@ export class RecipientController
         if (err || dbData.length === 0) { return HTTPResponse.error(res, 'recipients lists does not exist or you cannot access it', 400); }
 
         let list = new RecipientList(dbData[0]);
-        list.updateRecipients(recipients);
-
+        list.updateRecipients(recipients, status);
+        
         DataStore.local.recipients.addOrUpdate({ id: list.id }, list, {},
           (err, dbData) =>
           {
