@@ -47,7 +47,7 @@
     "serializer.ts": "0.0.12",
     "serve-favicon": "^2.3.2",
     "stripe": "^4.23.0",
-    "superagent": "^1.8.5",
+    "superagent": "^5.1.2",
     "typescript": "^2.4.0",
     "typings": "*",
     "underscore": "^1.8.3",
